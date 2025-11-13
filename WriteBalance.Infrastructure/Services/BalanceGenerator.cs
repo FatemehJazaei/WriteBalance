@@ -36,11 +36,6 @@ namespace WriteBalance.Infrastructure.Services
                 var stream = await GenerateRawTablesAsync(financialRecords, excelExporter, workbook, FolderPath);
                 stream.Position = 0;
 
-
-                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
-                worksheet.RightToLeft = true;
-                int row = 2;
-
                 var rows = financialRecords.Select(x => new ExcelRow
                 {
                     Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
@@ -80,6 +75,10 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (totalBed != totalBes)
                 {
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+                    excelExporter.SaveAsync(stream, FolderPath, "تراز خام");
+
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
@@ -90,6 +89,9 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
+                worksheet.RightToLeft = true;
+                int row = 2;
 
                 foreach (var item in mergedRows)
                 {
@@ -250,6 +252,10 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (totalBed != totalBes)
                 {
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+                    excelExporter.SaveAsync(stream, FolderPath, "تراز خام");
+
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
@@ -290,11 +296,6 @@ namespace WriteBalance.Infrastructure.Services
                 var workbook = excelExporter.GetWorkbook();
                 var stream = await GenerateRawRayanTablesAsync(RayanFinancialRecord, excelExporter, workbook, FolderPath);
                 stream.Position = 0;
-
-
-                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
-                worksheet.RightToLeft = true;
-                int row = 2;
 
                 var rows = RayanFinancialRecord.Select(x =>
                 {
@@ -355,6 +356,10 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (totalBed != totalBes)
                 {
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+                    excelExporter.SaveAsync(stream, FolderPath, "تراز خام"); 
+
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
@@ -365,6 +370,9 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
+                worksheet.RightToLeft = true;
+                int row = 2;
 
                 foreach (var item in mergedRows)
                 {
@@ -423,7 +431,7 @@ namespace WriteBalance.Infrastructure.Services
                     new ConnectionMessage
                     {
                         MessageType = MessageType.Error,
-                        Messages = new List<string> { "خطا در تولید جدول تراز خام" }
+                        Messages = new List<string> { "خطا در تولید تراز خام" }
                     },
                 FolderPath
                 );

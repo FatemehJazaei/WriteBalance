@@ -21,7 +21,7 @@ namespace WriteBalance.Infrastructure.Services
             config["ptokenDB"] = "c3d8e6a3459b15c9";
             config["objecttokenDB"] = "3d9758851923e42b";
             config["FromDateDB"] = "14030101";
-            config["ToDate"] = "14031230";
+            config["ToDateDB"] = "14031230";
             config["tarazType"] = "1";
             config["OrginalClientAddressDB"] = "10.15.52.97";
 

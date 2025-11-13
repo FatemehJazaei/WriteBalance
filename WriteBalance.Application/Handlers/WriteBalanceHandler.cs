@@ -124,20 +124,27 @@ namespace WriteBalance.Application.Handlers
             _logger.LogInformation("SaveAsync done Successfully.");
 
 
-            var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
-            _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
+            if (requestDB.PrintOrReport == "1")
+            {
+                var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
+                _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
 
-            var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
-            _logger.LogInformation("GetCompanyIdAsync done Successfully.");
+                var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
+                _logger.LogInformation("GetCompanyIdAsync done Successfully.");
 
-            var token = await _authService.GetAccessTokenAsync(request, CompanyId);
-            _logger.LogInformation("GetAccessTokenAsync done Successfully.");
-   
-            _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                var token = await _authService.GetAccessTokenAsync(request, CompanyId);
+                _logger.LogInformation("GetAccessTokenAsync done Successfully.");
 
-            bool PostApi = await _apiService.PostFileAsync(token, fileBase64 ,request);
+                _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
 
-            return await Task.FromResult(PostApi);
+                bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
+
+                return await Task.FromResult(PostApi);
+            }
+            else
+            {
+                return await Task.FromResult(true);
+            }
         }
         public async Task<bool> Handle_Poya_Async(APIRequestDto request, DBRequestDto requestDB)
         {
@@ -153,21 +160,27 @@ namespace WriteBalance.Application.Handlers
             await _excelExporter.SaveAsync(excelStream, request.FolderPath, request.FileName);
             _logger.LogInformation("SaveAsync done Successfully.");
 
+            if (requestDB.PrintOrReport == "1")
+            {
+                var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
+                _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
 
-            var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
-            _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
+                var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
+                _logger.LogInformation("GetCompanyIdAsync done Successfully.");
 
-            var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
-            _logger.LogInformation("GetCompanyIdAsync done Successfully.");
+                var token = await _authService.GetAccessTokenAsync(request, CompanyId);
+                _logger.LogInformation("GetAccessTokenAsync done Successfully.");
 
-            var token = await _authService.GetAccessTokenAsync(request, CompanyId);
-            _logger.LogInformation("GetAccessTokenAsync done Successfully.");
+                _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
 
-            _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
 
-            bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
-
-            return await Task.FromResult(PostApi);
+                return await Task.FromResult(PostApi);
+            }
+            else
+            {
+                return await Task.FromResult(true);
+            }
         }
         public async Task<bool> Handle_Hamrah_Karbordi_Sama_Async(APIRequestDto request, DBRequestDto requestDB)
         {
@@ -184,20 +197,27 @@ namespace WriteBalance.Application.Handlers
             _logger.LogInformation("SaveAsync done Successfully.");
 
 
-            var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
-            _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
+            if (requestDB.PrintOrReport == "1")
+            {
+                var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
+                _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
 
-            var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
-            _logger.LogInformation("GetCompanyIdAsync done Successfully.");
+                var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
+                _logger.LogInformation("GetCompanyIdAsync done Successfully.");
 
-            var token = await _authService.GetAccessTokenAsync(request, CompanyId);
-            _logger.LogInformation("GetAccessTokenAsync done Successfully.");
+                var token = await _authService.GetAccessTokenAsync(request, CompanyId);
+                _logger.LogInformation("GetAccessTokenAsync done Successfully.");
 
-            _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
 
-            bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
+                bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
 
-            return await Task.FromResult(PostApi);
+                return await Task.FromResult(PostApi);
+            }
+            else
+            {
+                return await Task.FromResult(true);
+            }
 
         }
     }
