@@ -9,6 +9,6 @@ namespace WriteBalance.Application.Interfaces
 {
     public interface IPeriodRepository
     {
-        Task<int> GetCompanyIdAsync(APIRequestDto request);
+        Task<(int, DateTime, DateTime)> GetTimeAsync(APIRequestDto request);
     }
 }

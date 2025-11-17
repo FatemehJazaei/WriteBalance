@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Application.Interfaces;
+using WriteBalance.Common.Logging;
 using WriteBalance.Infrastructure.Config;
 
 namespace WriteBalance.Infrastructure.Services
@@ -19,20 +21,19 @@ namespace WriteBalance.Infrastructure.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ApiConfig _settings;
-        private readonly ILogger<ApiService> _logger;
 
-        public ApiService(HttpClient httpClient, ApiConfig settings, ILogger<ApiService> logger)
+        public ApiService(HttpClient httpClient, ApiConfig settings)
         {
             _httpClient = httpClient;
             _settings = settings;
-            _logger = logger;
         }
 
         public async Task<bool> GetVerifyUniqueNameAsync(string token, APIRequestDto request)
         {
             try
             {
-                _logger.LogInformation($"Starting GetVerifyUniqueNameAsync  name: {request.BalanceName}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Starting GetVerifyUniqueNameAsync"), $"ApiService: GetVerifyUniqueNameAsync--typeReport:Info");
+
                 var url = $"{_settings.BaseUrl}/{_settings.PostIsUniqueUrl}";
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -55,24 +56,43 @@ namespace WriteBalance.Infrastructure.Services
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(url, payload, options);
-                _logger.LogDebug($"Response from {url} {response}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Response from {url} {response}"), $"ApiService: GetVerifyUniqueNameAsync--typeReport:Debug");
+
                 response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Login failed. Status: {response.StatusCode}, Error: {error}");
+                }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<bool>(json);
+                var result = System.Text.Json.JsonSerializer.Deserialize<bool>(json);
 
-                _logger.LogInformation($"Unique check result for '{request.BalanceName}': {result}");
+                if (result == false )
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Failed to fetch verify for unique name from (name={request.BalanceName})"), $"ApiService:GetVerifyUniqueNameAsync --typeReport:Error");
+                    throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"نام تراز تکراری است!" }
+                            },
+                        request.FolderPath
+                        );
 
+                }
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to fetch verify for unique name from (name={request.BalanceName})");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Failed to fetch verify for unique name from (name={request.BalanceName})"), $"ApiService:GetVerifyUniqueNameAsync --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ApiService:GetVerifyUniqueNameAsync --typeReport:Error");
+
                 throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $"نام تراز یکتا نیست!" }
+                            Messages = new List<string> { $"نام تراز تکراری است!" }
                         },
                     request.FolderPath
                     );
@@ -83,7 +103,8 @@ namespace WriteBalance.Infrastructure.Services
         {
             try
             {
-                _logger.LogInformation($"Starting PostFileAsync fileName: {request.FileName}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Starting PostFileAsync fileName: {request.FileName}"), $"ApiService: PostFileAsync--typeReport:Info");
+
                 var url = $"{_settings.BaseUrl}/{_settings.PostBalanceSheetUrl}";
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -100,7 +121,7 @@ namespace WriteBalance.Infrastructure.Services
                     showCancel = true
                 };
 
-                _logger.LogDebug($"payload: {payload}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"payload: {payload}"), $"ApiService: PostFileAsync--typeReport:Debug");
 
                 var options = new JsonSerializerOptions
                 {
@@ -108,22 +129,30 @@ namespace WriteBalance.Infrastructure.Services
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(url, payload, options);
-                _logger.LogDebug($"Response from {url}: {response}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Response from {url}: {response}"), $"ApiService: PostFileAsync--typeReport:Debug");
                 response.EnsureSuccessStatusCode();
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Login failed. Status: {response.StatusCode}, Error: {error}");
+                }
+
+
                 var json = await response.Content.ReadAsStringAsync();
-                _logger.LogDebug($"json: {json}");
 
                 using var doc = JsonDocument.Parse(json);
-                _logger.LogDebug($"doc: {doc.ToString}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"response doc: {doc.ToString}"), $"ApiService: PostFileAsync--typeReport:Debug");
 
                 if (doc.RootElement.TryGetProperty("models", out var models) && models.GetArrayLength() > 0)
                 {
-                    _logger.LogInformation("File uploaded successfully.");
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject("File uploaded successfully."), $"ApiService: PostFileAsync--typeReport:Info");
                     return true;
                 }
                 else
                 {
+                    Logger.WriteEntry(JsonConvert.SerializeObject("Uplouding file failed!."), $"ApiService: PostFileAsync --typeReport:Error");
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
@@ -134,14 +163,16 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                _logger.LogError(ex, $"Failed to post file (fileName: {request.FileName})");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Uplouding file failed!."), $"ApiService:PostFileAsync --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ApiService:PostFileAsync --typeReport:Error");
+
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
                         MessageType = MessageType.Error,
-                        Messages = new List<string> { $"خطا در ارتباط با سرور هنگام ارسال فایل" }
+                        Messages = new List<string> { $"خطا در ارتباط با سرور - ارسال فایل ناموفق" }
                     },
                 request.FolderPath
                 );

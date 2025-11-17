@@ -11,6 +11,9 @@ using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using WriteBalance.Infrastructure.Services;
+using Newtonsoft.Json;
+using WriteBalance.Common.Logging;
 
 namespace WriteBalance.Infrastructure.Repositories
 {
@@ -18,15 +21,18 @@ namespace WriteBalance.Infrastructure.Repositories
     {
         private readonly BankDbContext _context;
         private readonly RayanBankDbContext _rayanContext;
+        private readonly bool _IsTest;
 
         public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext)
         {
             _context = context;
             _rayanContext = rayanContext;
+            _IsTest = false;
         }
 
-        public List<FinancialRecord> ExecuteSPList(DBRequestDto requestDB)
+        public List<FinancialRecord> ExecuteSPList(DBRequestDto requestDB, DateTime startTime, DateTime endTime)
         {
+            Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteSPList ."), $"FinancialRepository: ExecuteSPList--typeReport:Info");
             var tarazName = "";
             switch (requestDB.TarazType)
             {
@@ -42,6 +48,8 @@ namespace WriteBalance.Infrastructure.Repositories
             }
 
             if (_context == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"context is null"), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
@@ -50,38 +58,72 @@ namespace WriteBalance.Infrastructure.Repositories
                     },
                     requestDB.FolderPath
                 );
+            }
+
 
             if (_context.FinancialRecord == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_context.FinancialRecord is null"), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                 throw new ConnectionMessageException(
-                        new ConnectionMessage
-                        {
-                            MessageType = MessageType.Error,
-                            Messages = new List<string> { $" {tarazName} خطا در ارتباط با جدول " }
-                        },
-                        requestDB.FolderPath
-                    );
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $" {tarazName} خطا در ارتباط با جدول " }
+                    },
+                    requestDB.FolderPath
+                );
+            }
+
             try
             {
+                string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
+                string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteSPList --typeReport:Debug");
 
-                var result = _context.FinancialRecord
-                            .FromSqlRaw(
-                                @"EXEC dbo.MainProc 
+                if (_IsTest)
+                {
+                    var result = _context.FinancialRecord
+                                .FromSqlRaw(
+                                    @"EXEC dbo.MainProc 
                                         @username = {0}, 
                                         @ptoken = {1}, 
                                         @objecttoken = {2}, 
                                         @parameterslist = {3}, 
                                         @OrginalClientAddress = {4}",
-                                requestDB.UserNameDB,
-                                requestDB.PtokenDB,
-                                requestDB.ObjecttokenDB,
-                               $"{requestDB.FromDateDB},{requestDB.ToDate},{requestDB.TarazType}",
-                                requestDB.OrginalClientAddressDB
-                            )
-                            .ToList();
-                return result;
+                                    requestDB.UserNameDB,
+                                    requestDB.PtokenDB,
+                                    requestDB.ObjecttokenDB,
+                                   $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
+                                    requestDB.OrginalClientAddressDB
+                                )
+                                .ToList();
+                    return result;
+                }
+                else
+                {
+                    var result = _context.FinancialRecord
+                                .FromSqlRaw(
+                                    @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
+                                                            @username = {0}, 
+                                                            @ptoken = {1}, 
+                                                            @objecttoken = {2}, 
+                                                            @parameterslist = {3}, 
+                                                            @OrginalClientAddress = {4}",
+                                    requestDB.UserNameDB,
+                                    requestDB.PtokenDB,
+                                    requestDB.ObjecttokenDB,
+                                   $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
+                                    requestDB.OrginalClientAddressDB
+                                )
+                                .ToList();
+                    return result;
+                }
+
             }
-            catch
+            catch( Exception ex ) 
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
@@ -103,12 +145,20 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<RayanFinancialRecord> ExecuteRayanSPList(DBRequestDto requestDB)
+        public List<RayanFinancialRecord> ExecuteRayanSPList(DBRequestDto requestDB, DateTime startTime, DateTime endTime)
         {
+            Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteRayanSPList "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Info");
+
             var tarazName = "رایان";
             requestDB.TarazType = "2";
 
+            string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
+            string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
+
             if (_context == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"context is null"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
@@ -117,8 +167,12 @@ namespace WriteBalance.Infrastructure.Repositories
                     },
                     requestDB.FolderPath
                 );
+            }
+
 
             if (_rayanContext.RayanFinancialBalance == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_rayanContext.RayanFinancialBalance is null"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
@@ -127,26 +181,50 @@ namespace WriteBalance.Infrastructure.Repositories
                         },
                         requestDB.FolderPath
                     );
+            }
+
             try
             {
-                var result = _rayanContext.RayanFinancialBalance
+                if (_IsTest)
+                {
+                    var result = _rayanContext.RayanFinancialBalance
                     .FromSqlRaw(
                         @"EXEC dbo.SouratMali 
 		            @FromDate = {0}, 
 		            @ToDate = {1},
-		            @FromVoucherNum = {3},
-		            @ToVoucherNum = {4}",
-                        requestDB.FromDateDB,
-                        requestDB.ToDate,
-                        requestDB.FromDateDB,
+		            @FromVoucherNum = {2},
+		            @ToVoucherNum = {3}",
+                        startTimePersian,
+                        endTimePersian,
+                        requestDB.FromVoucherNum,
                         requestDB.ToVoucherNum
                     )
                     .ToList();
+                    return result;
+                }
+                else
+                {
+                    var result = _rayanContext.RayanFinancialBalance
+            .FromSqlRaw(
+                @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
+		                                    @FromDate = {0}, 
+		                                    @ToDate = {1},
+		                                    @FromVoucherNum = {2},
+		                                    @ToVoucherNum = {3}",
+                startTimePersian,
+                endTimePersian,
+                requestDB.FromVoucherNum,
+                requestDB.ToVoucherNum
+            )
+            .ToList();
+                    return result;
+                }
 
-                return result;
             }
-            catch
+            catch( Exception ex )
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
@@ -160,54 +238,92 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<FinancialRecord> ExecutePoyaSPList(DBRequestDto requestDB)
+        public List<FinancialRecord> ExecutePoyaSPList(DBRequestDto requestDB, DateTime startTime, DateTime endTime)
         {
+            Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecutePoyaSPList "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
+
             var tarazName = "پویا";
             requestDB.TarazType = "5";
 
-            if (_context == null)
-                throw new ConnectionMessageException(
-                    new ConnectionMessage
-                    {
-                        MessageType = MessageType.Error,
-                        Messages = new List<string> { $" {tarazName} خطا در ارتباط با پایگاه داده" }
-                    },
-                    requestDB.FolderPath
-                );
+            string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
+            string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
 
-            if (_context.FinancialRecord == null)
+            if (_context == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"context is null"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $" {tarazName} خطا در ارتباط با جدول " }
+                            Messages = new List<string> { $" {tarazName} خطا در ارتباط با پایگاه داده" }
                         },
                         requestDB.FolderPath
                     );
+            }
+
+
+            if (_context.FinancialRecord == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"context.FinancialRecord is null"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $" {tarazName} خطا در ارتباط با جدول " }
+                    },
+                    requestDB.FolderPath
+                );
+
+            }
 
             try
             {
-
-                var result = _context.FinancialRecord
-                            .FromSqlRaw(
-                                @"EXEC dbo.MainProc 
+                if(_IsTest) 
+                {
+                    var result = _context.FinancialRecord
+                .FromSqlRaw(
+                    @"EXEC dbo.MainProc 
                                         @username = {0}, 
                                         @ptoken = {1}, 
                                         @objecttoken = {2}, 
                                         @parameterslist = {3}, 
                                         @OrginalClientAddress = {4}",
-                                requestDB.UserNameDB,
-                                requestDB.PtokenDB,
-                                requestDB.ObjecttokenDB,
-                               $"{requestDB.FromDateDB},{requestDB.ToDate},{requestDB.TarazType}",
-                                requestDB.OrginalClientAddressDB
-                            )
-                            .ToList();
+                    requestDB.UserNameDB,
+                    requestDB.PtokenDB,
+                    requestDB.ObjecttokenDB,
+                   $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
+                    requestDB.OrginalClientAddressDB
+                )
+                .ToList();
+                    return result;
+                }
+                else
+                {
+                    var result = _context.FinancialRecord
+                        .FromSqlRaw(
+                            @"EXEC [10.15.43.83].DWProxyDB.dbo.MainProc
+                            @username = {0}, 
+                            @ptoken = {1}, 
+                            @objecttoken = {2}, 
+                            @parameterslist = {3}, 
+                            @OrginalClientAddress = {4}",
+                        requestDB.UserNameDB,
+                        requestDB.PtokenDB,
+                        requestDB.ObjecttokenDB,
+                       $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
+                        requestDB.OrginalClientAddressDB
+                    )
+                    .ToList();
 
-                return result;
+                    return result;
+                }
+
             }
-            catch
+            catch( Exception ex )
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {

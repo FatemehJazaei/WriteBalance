@@ -22,7 +22,7 @@ engine = create_engine(
 )
 
 df.to_sql(
-    "MyExcelImport3",
+    "AccountingDB",
     con=engine,
     if_exists="append",
     index=False,
@@ -38,5 +38,10 @@ df.to_sql(
         "حساب تفصیلی": types.NVARCHAR(length=255),
         "حساب جز1": types.NVARCHAR(length=255),
         "حساب جز2": types.NVARCHAR(length=255),
+        "بدهکار": types.BIGINT,
+        "بستانکار": types.BIGINT,
     },
 )
+
+
+print("Done!")

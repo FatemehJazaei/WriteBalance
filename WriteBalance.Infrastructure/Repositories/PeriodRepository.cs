@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Application.Interfaces;
+using WriteBalance.Common.Logging;
 using WriteBalance.Infrastructure.Context;
 
 namespace WriteBalance.Infrastructure.Repositories
@@ -17,28 +19,29 @@ namespace WriteBalance.Infrastructure.Repositories
     {
         private readonly AppDbContext _context;
 
-        private readonly ILogger<PeriodRepository> _logger;
-
-        public PeriodRepository(AppDbContext context, ILogger<PeriodRepository> logger)
+        public PeriodRepository(AppDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
-        public async Task<int> GetCompanyIdAsync(APIRequestDto request)
+        public async Task<(int, DateTime, DateTime)> GetTimeAsync(APIRequestDto request)
         {
             try
             {
-                _logger.LogInformation("Starting GetCompanyIdAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GetTimeAsync"), $"PeriodRepository:GetTimeAsync--typeReport:Info");
+
                 var entity = await _context.Periods
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == request.PeriodId);
 
-                return entity.CompanyId;
+                Logger.WriteEntry(JsonConvert.SerializeObject($"CompanyId:{entity.CompanyId},StartDate:{entity.StartDate},TimeEnd:{entity.TimeEnd} "), $"PeriodRepository:GetTimeAsync--typeReport:Debug");
+
+                return (entity.CompanyId, entity.StartDate, entity.TimeEnd);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to fetch CompanyId from database (periodId): {request.PeriodId}");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"PeriodRepository:GetTimeAsync--typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Failed to fetch StartDate and TimeEnd from database (periodId): {request.PeriodId}"), $"PeriodRepository:GetTimeAsync--typeReport:Error");
 
                 throw new ConnectionMessageException(new ConnectionMessage
                 {

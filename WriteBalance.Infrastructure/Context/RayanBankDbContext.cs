@@ -61,10 +61,10 @@ namespace WriteBalance.Infrastructure.Context
                     .HasColumnName("نام حساب جز2");
 
                 entity.Property(e => e.Mande_Bed)
-                    .HasColumnName("مانده بدهکار");
+                    .HasColumnName("بدهکار");
 
                 entity.Property(e => e.Mande_Bes)
-                    .HasColumnName("مانده بستانکار");
+                    .HasColumnName("بستانکار");
             });
 
             // modelBuilder.Entity<FinancialRecord>().ToTable("FinancialBalance").HasKey(x => x.Id);

@@ -9,9 +9,11 @@ namespace WriteBalance.Application.Interfaces
 {
     public interface IExcelExporter
     {
-        XLWorkbook GetWorkbook();
+        XLWorkbook GetWorkbookReport();
+        XLWorkbook GetWorkbookUpload();
         Task<MemoryStream> CreateWorkbookAsync();
 
-        Task SaveAsync(MemoryStream stream, string path, string fileName);
+        Task SaveReportAsync(MemoryStream stream, string path, string fileName);
+        Task SaveUploadAsync(MemoryStream stream, string path, string fileName);
     }
 }

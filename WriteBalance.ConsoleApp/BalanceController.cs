@@ -1,8 +1,5 @@
 ﻿using DocumentFormat.OpenXml.InkML;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,23 +9,28 @@ using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Handlers;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Infrastructure.Services;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+using WriteBalance.Common.Logging;
 
-namespace WriteBalance.ConsoleApp
+namespace WriteBalanceConsoleApp
 {
     public class BalanceController
     {
-        private readonly ILogger _logger;
         private readonly WriteBalanceHandler _writeBalanceHandler;
-        public BalanceController(ILogger<BalanceGenerator> logger, WriteBalanceHandler writeBalanceHandler) 
+        private readonly CheckInput _checkInput;
+        public BalanceController( WriteBalanceHandler writeBalanceHandler, CheckInput checkInput) 
         {
-            _writeBalanceHandler = writeBalanceHandler;
+            _writeBalanceHandler = writeBalanceHandler; 
+            _checkInput = checkInput;
 
         }
         public async Task InputBalanceController(Dictionary<string, string> config)
         {
             try
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
+
+                var InputValid = await _checkInput.CheckUserInput(config); 
+
                 string folderName = config["of"];
                 string path = config["op"];
 
@@ -42,7 +44,7 @@ namespace WriteBalance.ConsoleApp
                 string fileName = $"{config["BalanceName"]}_{timestamp}.xlsx";
                 string folderPath = Path.Combine(path, folderName);
 
-                Log.Information($"OutputPath: {folderPath}");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
 
                 var request = new APIRequestDto
                 {
@@ -61,14 +63,14 @@ namespace WriteBalance.ConsoleApp
                     PtokenDB = config["ptokenDB"],
                     ObjecttokenDB = config["objecttokenDB"],
                     OrginalClientAddressDB = config["OrginalClientAddressDB"],
-                    TarazType = config["OrginalClientAddressDB"],
-                    FromDateDB = config["OrginalClientAddressDB"],
-                    ToDate = config["OrginalClientAddressDB"],
-                    FromVoucherNum = config["OrginalClientAddressDB"],
-                    ToVoucherNum = config["OrginalClientAddressDB"],
-                    ExceptVoucherNum = config["1"],
-                    OnlyVoucherNum = config["1"],
-                    PrintOrReport = config["1"],
+                    TarazType = config["tarazType"],
+                    FromDateDB = config["FromDateDB"],
+                    ToDateDB = config["ToDateDB"],
+                    FromVoucherNum = config["FromVoucherNum"],
+                    ToVoucherNum = config["ToVoucherNum"],
+                    ExceptVoucherNum = config["ExceptVoucherNum"],
+                    OnlyVoucherNum = config["OnlyVoucherNum"],
+                    PrintOrReport = config["PrintOrReport"],
                     FolderPath = folderPath,
                     FileName = fileName,
                 };
@@ -83,13 +85,14 @@ namespace WriteBalance.ConsoleApp
                 else 
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
+                    Logger.WriteEntry(JsonConvert.SerializeObject("Unhandled exception occurred in BalanceController - 604"), $"BalanceController--typeReport:Error");
                     Environment.ExitCode = 604;
                 }
 
             }
             catch (ConnectionMessageException ex)
             {
-                Log.Error(ex.Message);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Unhandled exception occurred in BalanceController : {ex.Message}"), $"BalanceController--typeReport:Debug");
                 Console.ForegroundColor = ConsoleColor.Red;
 
                 File.WriteAllText($"{ex.FolderPath}/Messages.txt", JsonConvert.SerializeObject(ex.ConnectionMessage));

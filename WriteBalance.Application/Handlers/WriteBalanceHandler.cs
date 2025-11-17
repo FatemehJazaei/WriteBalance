@@ -13,6 +13,11 @@ using WriteBalance.Domain.Entities;
 using WriteBalance.Application.Interfaces;
 using WriteBalance.Application.Exceptions;
 using System.IO;
+using System.Data;
+using DocumentFormat.OpenXml.Drawing;
+using Newtonsoft.Json;
+using WriteBalance.Common.Logging;
+
 
 namespace WriteBalance.Application.Handlers
 {
@@ -26,7 +31,7 @@ namespace WriteBalance.Application.Handlers
         private readonly IPeriodRepository _periodRepository;
         private readonly IBalanceGenerator _balanceGenerator;
         private readonly IFileEncoder _fileEncoder;
-        private readonly ILogger<WriteBalanceHandler> _logger;
+        private readonly Logger _logger;
 
         public WriteBalanceHandler(
             IAuthService authService,
@@ -35,8 +40,7 @@ namespace WriteBalance.Application.Handlers
             IFinancialRepository financialRepository,
             IExcelExporter excelExporter,
             IPeriodRepository periodRepository,
-            IFileEncoder fileEncoder,
-            ILogger<WriteBalanceHandler> logger)
+            IFileEncoder fileEncoder, Logger logger)
         {
             _authService = authService;
             _financialRepository = financialRepository;
@@ -45,7 +49,6 @@ namespace WriteBalance.Application.Handlers
             _periodRepository = periodRepository;
             _balanceGenerator = balanceGenerator;
             _fileEncoder = fileEncoder;
-            _logger = logger;
         }
 
         public async Task<bool> HandleAsync(APIRequestDto request, DBRequestDto requestDB)
@@ -53,13 +56,30 @@ namespace WriteBalance.Application.Handlers
 
             try
             {
-                _logger.LogInformation("Starting HandleAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting HandleAsync"), $"WriteBalanceHandler: HandleAsync--typeReport:Info");
 
-                if (requestDB.TarazType == "0")
+                if (requestDB.TarazType == "-1")
                 {
+
                     var TarazNumb =new string[] { "1", "3", "4" };
+                    var UserInterBalanceName = request.BalanceName;
+
                     foreach (var num in TarazNumb)
                     {
+
+                        switch (num)
+                        {
+                            case "1":
+                                request.BalanceName = UserInterBalanceName + "_سما_";
+                                break;
+                            case "4":
+                                request.BalanceName = UserInterBalanceName + "_همراه_";
+                                break;
+                            case "3":
+                                request.BalanceName = UserInterBalanceName + "_کاربردی_";
+                                break;
+                        }
+
                         requestDB.TarazType = num;
                         var result = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                         if (!result)
@@ -68,13 +88,16 @@ namespace WriteBalance.Application.Handlers
                         }
 
                     }
+                    request.BalanceName = UserInterBalanceName + "_رایان_";
                     var resultRayan = await Handle_Rayan_Async(request, requestDB);
                     if (!resultRayan)
                     {
                         return await Task.FromResult(resultRayan);
                     }
-                    var resultPoya = await Handle_Poya_Async(request, requestDB);
-                    return await Task.FromResult(resultPoya);
+                    return await Task.FromResult(resultRayan);
+                    // request.BalanceName = UserInterBalanceName + "_پویا_";
+                    // var resultPoya = await Handle_Poya_Async(request, requestDB);
+                    //return await Task.FromResult(resultPoya);
 
                 }
                 else if (requestDB.TarazType == "1" || requestDB.TarazType == "3" || requestDB.TarazType == "4")
@@ -89,7 +112,8 @@ namespace WriteBalance.Application.Handlers
                 }
                 else 
                 {
-                    _logger.LogError( "Error in  GenerateExcelHandler file.TarazType is not found!");
+                    Logger.WriteEntry(JsonConvert.SerializeObject("TarazType is not found!"), $"WriteBalanceHandler: HandleAsync--typeReport:Error");
+
                     throw new ConnectionMessageException(new ConnectionMessage
                     {
                         MessageType = MessageType.Error,
@@ -103,7 +127,7 @@ namespace WriteBalance.Application.Handlers
             }
             catch (ConnectionMessageException ex)
             {
-                _logger.LogError(ex, "Error in  GenerateExcelHandler file. HandleAsync fail!");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"Error in  HandleAsync.{ex.Message}"), $"WriteBalanceHandler: HandleAsync--typeReport:Error");
                 throw ;
             }
         }
@@ -112,32 +136,35 @@ namespace WriteBalance.Application.Handlers
         public async Task<bool> Handle_Rayan_Async(APIRequestDto request, DBRequestDto requestDB)
         {
             var excelStream = await _excelExporter.CreateWorkbookAsync();
-            _logger.LogInformation("CreateWorkbookAsync done Successfully.");
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecuteRayanSPList(requestDB);
-            _logger.LogInformation("ExecuteMainProc done Successfully.");
+             (var CompanyId, DateTime startTime, DateTime endTime ) = await _periodRepository.GetTimeAsync(request);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecuteRayanSPList(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+
 
             excelStream = await _balanceGenerator.GenerateRayanTablesAsync(financialRecord, _excelExporter, request.FolderPath);
-            _logger.LogInformation("GenerateTablesAsync done Successfully.");
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateRayanTablesAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-            await _excelExporter.SaveAsync(excelStream, request.FolderPath, request.FileName);
-            _logger.LogInformation("SaveAsync done Successfully.");
+            await _excelExporter.SaveUploadAsync(excelStream, request.FolderPath, request.FileName);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SaveUploadAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
 
             if (requestDB.PrintOrReport == "1")
             {
                 var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
-                _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
-
-                var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
-                _logger.LogInformation("GetCompanyIdAsync done Successfully.");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
                 var token = await _authService.GetAccessTokenAsync(request, CompanyId);
-                _logger.LogInformation("GetAccessTokenAsync done Successfully.");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-                _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                bool IsUnique = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetVerifyUniqueNameAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
                 bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"PostFileAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
                 return await Task.FromResult(PostApi);
             }
@@ -146,34 +173,37 @@ namespace WriteBalance.Application.Handlers
                 return await Task.FromResult(true);
             }
         }
+
         public async Task<bool> Handle_Poya_Async(APIRequestDto request, DBRequestDto requestDB)
         {
             var excelStream = await _excelExporter.CreateWorkbookAsync();
-            _logger.LogInformation("CreateWorkbookAsync done Successfully.");
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecutePoyaSPList(requestDB);
-            _logger.LogInformation("ExecuteMainProc done Successfully.");
+            (var CompanyId, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecutePoyaSPList(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecutePoyaSPList done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             excelStream = await _balanceGenerator.GeneratePoyaTablesAsync(financialRecord, _excelExporter, request.FolderPath);
-            _logger.LogInformation("GenerateTablesAsync done Successfully.");
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GeneratePoyaTablesAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
-            await _excelExporter.SaveAsync(excelStream, request.FolderPath, request.FileName);
-            _logger.LogInformation("SaveAsync done Successfully.");
+            await _excelExporter.SaveUploadAsync(excelStream, request.FolderPath, request.FileName);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SaveUploadAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             if (requestDB.PrintOrReport == "1")
             {
                 var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
-                _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
-
-                var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
-                _logger.LogInformation("GetCompanyIdAsync done Successfully.");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
                 var token = await _authService.GetAccessTokenAsync(request, CompanyId);
-                _logger.LogInformation("GetAccessTokenAsync done Successfully.");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
                 _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetVerifyUniqueNameAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
                 bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"PostFileAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
                 return await Task.FromResult(PostApi);
             }
@@ -182,35 +212,38 @@ namespace WriteBalance.Application.Handlers
                 return await Task.FromResult(true);
             }
         }
+
         public async Task<bool> Handle_Hamrah_Karbordi_Sama_Async(APIRequestDto request, DBRequestDto requestDB)
         {
             var excelStream = await _excelExporter.CreateWorkbookAsync();
-            _logger.LogInformation("CreateWorkbookAsync done Successfully.");
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecuteSPList(requestDB);
-            _logger.LogInformation("ExecuteMainProc done Successfully.");
+            (var CompanyId, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecuteSPList(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
             excelStream = await _balanceGenerator.GenerateTablesAsync(financialRecord, _excelExporter, request.FolderPath);
-            _logger.LogInformation("GenerateTablesAsync done Successfully.");
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
-            await _excelExporter.SaveAsync(excelStream, request.FolderPath, request.FileName);
-            _logger.LogInformation("SaveAsync done Successfully.");
+            await _excelExporter.SaveUploadAsync(excelStream, request.FolderPath, request.FileName);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SaveUploadAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
 
             if (requestDB.PrintOrReport == "1")
             {
                 var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(request.FolderPath, request.FileName);
-                _logger.LogInformation("EncodeFileToBase64Async done Successfully.");
-
-                var CompanyId = await _periodRepository.GetCompanyIdAsync(request);
-                _logger.LogInformation("GetCompanyIdAsync done Successfully.");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
                 var token = await _authService.GetAccessTokenAsync(request, CompanyId);
-                _logger.LogInformation("GetAccessTokenAsync done Successfully.");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
                 _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetVerifyUniqueNameAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
                 bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"PostFileAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
                 return await Task.FromResult(PostApi);
             }

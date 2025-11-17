@@ -9,9 +9,11 @@
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WriteBalance.Common\WriteBalance.Common.csproj" />
     <ProjectReference Include="..\WriteBalance.Domain\WriteBalance.Domain.csproj" />
   </ItemGroup>
 

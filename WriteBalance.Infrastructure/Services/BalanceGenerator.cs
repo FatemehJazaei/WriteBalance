@@ -1,7 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,30 +9,25 @@ using System.Xml;
 using WriteBalance.Domain.Entities;
 using WriteBalance.Application.Interfaces;
 using ClosedXML.Excel;
-using Azure.Core;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
-using System.Linq.Expressions;
+using Newtonsoft.Json;
+using WriteBalance.Common.Logging;
 
 namespace WriteBalance.Infrastructure.Services
 {
     public class BalanceGenerator : IBalanceGenerator
     {
-        private readonly ILogger<BalanceGenerator> _logger;
-
-        public BalanceGenerator(ILogger<BalanceGenerator> logger)
-        {
-            _logger = logger;
-        }
         public async Task<MemoryStream> GenerateTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, string FolderPath)
         {
             try
             {
-                _logger.LogInformation("Starting GenerateRawTablesAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateTablesAsync"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Info");
 
-                var workbook = excelExporter.GetWorkbook();
-                var stream = await GenerateRawTablesAsync(financialRecords, excelExporter, workbook, FolderPath);
-                stream.Position = 0;
+                var workbookReport = excelExporter.GetWorkbookReport();
+                var workbookUpload = excelExporter.GetWorkbookUpload(); 
+                var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, FolderPath);
+                streamReport.Position = 0;
 
                 var rows = financialRecords.Select(x => new ExcelRow
                 {
@@ -55,7 +48,7 @@ namespace WriteBalance.Infrastructure.Services
                 if (duplicateKeys.Any())
                 {
                     var dupList = string.Join(", ", duplicateKeys);
-                    _logger.LogWarning($"Duplicate values found in Col1: {dupList}");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Duplicate values found in Col1: {dupList}"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Warning");
                     mergedRows = MergeDuplicateRows(mergedRows);
                 }
 
@@ -63,7 +56,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (emptyCol2.Any())
                 {
-                    _logger.LogWarning($"Found {emptyCol2.Count} rows with empty Col2.");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateTablesAsync --typeReport:Warning");
                     foreach (var item in emptyCol2)
                     {
                         item.Col2 = item.Col1;
@@ -75,9 +68,8 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (totalBed != totalBes)
                 {
-                    workbook.SaveAs(stream);
-                    stream.Position = 0;
-                    excelExporter.SaveAsync(stream, FolderPath, "تراز خام");
+                    excelExporter.SaveReportAsync(streamReport, FolderPath, "Raw_Balance.xlsx");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage
@@ -89,26 +81,39 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
-                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
-                worksheet.RightToLeft = true;
+                var worksheetUpload = workbookUpload.Worksheets.Add("Data");
+                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
+                worksheetUpload.RightToLeft = true;
+                worksheetReport.RightToLeft = true;
                 int row = 2;
 
                 foreach (var item in mergedRows)
                 {
-                    worksheet.Cell(row, 1).Value = item.Col1;
-                    worksheet.Cell(row, 2).Value = item.Col2;
-                    worksheet.Cell(row, 3).Value = item.Col3;
-                    worksheet.Cell(row, 4).Value = item.Col4;
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
+
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col3;
+                    worksheetReport.Cell(row, 4).Value = item.Col4; ;
+
                     row++;
                 }
 
-                workbook.SaveAs(stream);
-                stream.Position = 0;
-                return await Task.FromResult(stream);
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+                excelExporter.SaveReportAsync(streamReport, FolderPath, "Balance.xlsx");
+
+                var streamUpload = new MemoryStream();
+                workbookUpload.SaveAs(streamUpload);
+                streamUpload.Position = 0;
+                return await Task.FromResult(streamUpload);
             }
-            catch(Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Failed to GenerateTablesAsync");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
                 throw;
             }
         }
@@ -153,7 +158,7 @@ namespace WriteBalance.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to MergeDuplicateRows");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:MergeDuplicateRows --typeReport:Error");
                 throw;
             }
 
@@ -163,8 +168,7 @@ namespace WriteBalance.Infrastructure.Services
         {
             try
             {
-
-                _logger.LogInformation("Starting GenerateRawTablesAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRawTablesAsync"), $"BalanceGenerator:GenerateRawTablesAsync --typeReport:Info");
                 var worksheet = workbook.Worksheets.Add("تراز خام");
                 worksheet.RightToLeft = true;
                 int row = 2;
@@ -175,17 +179,19 @@ namespace WriteBalance.Infrastructure.Services
                     worksheet.Cell(row, 2).Value = item.Kol_Title;
                     worksheet.Cell(row, 3).Value = item.Moeen_Code;
                     worksheet.Cell(row, 4).Value = item.Moeen_Title;
-                    worksheet.Cell(row, 3).Value = item.Mande_Bed;
-                    worksheet.Cell(row, 4).Value = item.Mande_Bes;
+                    worksheet.Cell(row, 5).Value = item.Mande_Bed;
+                    worksheet.Cell(row, 6).Value = item.Mande_Bes;
                     row++;
                 }
 
                 var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
                 return await Task.FromResult(stream);
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex, "Failed to GenerateRawTablesAsync");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:GenerateRawTablesAsync --typeReport:Error");
 
                 throw new ConnectionMessageException(
                     new ConnectionMessage
@@ -202,16 +208,12 @@ namespace WriteBalance.Infrastructure.Services
         {
             try
             {
-                _logger.LogInformation("Starting GeneratePoyaTablesAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GeneratePoyaTablesAsync"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Info");
 
-                var workbook = excelExporter.GetWorkbook();
-                var stream = await GenerateRawTablesAsync(financialRecords, excelExporter, workbook, FolderPath);
-                stream.Position = 0;
-
-
-                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
-                worksheet.RightToLeft = true;
-                int row = 2;
+                var workbookReport = excelExporter.GetWorkbookReport();
+                var workbookUpload = excelExporter.GetWorkbookUpload();
+                var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, FolderPath);
+                streamReport.Position = 0;
 
                 var rows = financialRecords.Select(x => new ExcelRow
                 {
@@ -229,10 +231,11 @@ namespace WriteBalance.Infrastructure.Services
                                     .Select(g => g.Key)
                                     .ToList();
 
+
                 if (duplicateKeys.Any())
                 {
                     var dupList = string.Join(", ", duplicateKeys);
-                    _logger.LogWarning($"Duplicate values found in Col1: {dupList}");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Duplicate values found in Col1: {dupList}"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Warning");
                     mergedRows = MergeDuplicateRows(mergedRows);
                 }
 
@@ -240,7 +243,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (emptyCol2.Any())
                 {
-                    _logger.LogWarning($"Found {emptyCol2.Count} rows with empty Col2.");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Warning");
                     foreach (var item in emptyCol2)
                     {
                         item.Col2 = item.Col1;
@@ -252,9 +255,8 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (totalBed != totalBes)
                 {
-                    workbook.SaveAs(stream);
-                    stream.Position = 0;
-                    excelExporter.SaveAsync(stream, FolderPath, "تراز خام");
+                    excelExporter.SaveReportAsync(streamReport, FolderPath, "Raw_Balance.xlsx");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage
@@ -266,23 +268,39 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                var worksheetUpload = workbookUpload.Worksheets.Add("Data");
+                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
+                worksheetUpload.RightToLeft = true;
+                worksheetReport.RightToLeft = true;
+                int row = 2;
 
                 foreach (var item in mergedRows)
                 {
-                    worksheet.Cell(row, 1).Value = item.Col1;
-                    worksheet.Cell(row, 2).Value = item.Col2;
-                    worksheet.Cell(row, 3).Value = item.Col3;
-                    worksheet.Cell(row, 4).Value = item.Col4;
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
+
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col3;
+                    worksheetReport.Cell(row, 4).Value = item.Col4; ;
+
                     row++;
                 }
 
-                workbook.SaveAs(stream);
-                stream.Position = 0;
-                return await Task.FromResult(stream);
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+                excelExporter.SaveReportAsync(streamReport, FolderPath, "Balance.xlsx");
+
+                var streamUpload = new MemoryStream();
+                workbookUpload.SaveAs(streamUpload);
+                streamUpload.Position = 0;
+                return await Task.FromResult(streamUpload);
             }
-            catch(Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Failed to GeneratePoyaTablesAsync");
+                Logger.WriteEntry(JsonConvert.SerializeObject("GeneratePoyaTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
                 throw;
             }
         }
@@ -291,11 +309,12 @@ namespace WriteBalance.Infrastructure.Services
         {
             try
             {
-                _logger.LogInformation("Starting GenerateRayanTablesAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRayanTablesAsync"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Info");
 
-                var workbook = excelExporter.GetWorkbook();
-                var stream = await GenerateRawRayanTablesAsync(RayanFinancialRecord, excelExporter, workbook, FolderPath);
-                stream.Position = 0;
+                var workbookReport = excelExporter.GetWorkbookReport();
+                var workbookUpload = excelExporter.GetWorkbookUpload(); 
+                var streamReport = await GenerateRawRayanTablesAsync(RayanFinancialRecord, excelExporter, workbookReport, FolderPath);
+                streamReport.Position = 0;
 
                 var rows = RayanFinancialRecord.Select(x =>
                 {
@@ -336,7 +355,7 @@ namespace WriteBalance.Infrastructure.Services
                 if (duplicateKeys.Any())
                 {
                     var dupList = string.Join(", ", duplicateKeys);
-                    _logger.LogWarning($"Duplicate values found in Col1: {dupList}");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Duplicate values found in Col1: {dupList}"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Warning");
                     mergedRows = MergeDuplicateRows(mergedRows);
                 }
 
@@ -344,7 +363,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (emptyCol2.Any())
                 {
-                    _logger.LogWarning($"Found {emptyCol2.Count} rows with empty Col2.");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Warning");
                     foreach (var item in emptyCol2)
                     {
                         item.Col2 = item.Col1;
@@ -356,9 +375,8 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (totalBed != totalBes)
                 {
-                    workbook.SaveAs(stream);
-                    stream.Position = 0;
-                    excelExporter.SaveAsync(stream, FolderPath, "تراز خام"); 
+                    excelExporter.SaveReportAsync(streamReport, FolderPath, "Raw_Balance.xlsx");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage
@@ -370,26 +388,39 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
-                var worksheet = workbook.Worksheets.Add("تراز اکسیر");
-                worksheet.RightToLeft = true;
+                var worksheetUpload = workbookUpload.Worksheets.Add("data");
+                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
+                worksheetUpload.RightToLeft = true;
+                worksheetReport.RightToLeft = true;
                 int row = 2;
 
                 foreach (var item in mergedRows)
                 {
-                    worksheet.Cell(row, 1).Value = item.Col1;
-                    worksheet.Cell(row, 2).Value = item.Col2;
-                    worksheet.Cell(row, 3).Value = item.Col3;
-                    worksheet.Cell(row, 4).Value = item.Col4;
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
+
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col3;
+                    worksheetReport.Cell(row, 4).Value = item.Col4;
+
                     row++;
                 }
 
-                workbook.SaveAs(stream);
-                stream.Position = 0;
-                return await Task.FromResult(stream);
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+                excelExporter.SaveReportAsync(streamReport, FolderPath, "Balance.xlsx");
+
+                var streamUpload = new MemoryStream();
+                workbookUpload.SaveAs(streamUpload);
+                streamUpload.Position = 0;
+                return await Task.FromResult(streamUpload);
             }
-            catch(Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Failed to GenerateRayanTablesAsync");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Failed to GenerateRayanTablesAsync"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Error");
                 throw;
             }
         }
@@ -397,8 +428,7 @@ namespace WriteBalance.Infrastructure.Services
         {
             try
             {
-
-                _logger.LogInformation("Starting GenerateRawRAyanTablesAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRawRayanTablesAsync"), $"BalanceGenerator:GenerateRawRayanTablesAsync --typeReport:Info");
                 var worksheet = workbook.Worksheets.Add("تراز خام");
                 worksheet.RightToLeft = true;
                 int row = 2;
@@ -421,11 +451,13 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
                 var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
                 return await Task.FromResult(stream);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to GenerateRawRayanTablesAsync");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:GenerateRawRayanTablesAsync --typeReport:Error");
 
                 throw new ConnectionMessageException(
                     new ConnectionMessage

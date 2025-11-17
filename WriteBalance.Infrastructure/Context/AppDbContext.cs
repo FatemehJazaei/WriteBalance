@@ -36,6 +36,16 @@ namespace WriteBalance.Infrastructure.Context
                         .Property(x => x.CompanyId)
                         .HasColumnName("CategoryId")
                         .IsRequired();
+
+            modelBuilder.Entity<Period>()
+            .Property(x => x.StartDate)
+            .HasColumnName("StartDate")
+            .IsRequired();
+
+            modelBuilder.Entity<Period>()
+            .Property(x => x.TimeEnd)
+            .HasColumnName("TimeEnd")
+            .IsRequired();
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Azure.Core;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,36 +11,54 @@ using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Application.Interfaces;
+using WriteBalance.Common.Logging;
 
 namespace WriteBalance.Infrastructure.Services
 {
     public class ExcelExporter : IExcelExporter
     {
-        private readonly XLWorkbook _workbook;
+        private readonly XLWorkbook _workbookUpload;
+        private readonly XLWorkbook _workbookReport;
 
-        private readonly ILogger<ExcelExporter> _logger;
-        public ExcelExporter(ILogger<ExcelExporter> logger)
+        public ExcelExporter()
         {
-            _workbook = new XLWorkbook();
-            _logger = logger;
+            _workbookReport = new XLWorkbook();
+            _workbookUpload = new XLWorkbook();
         }
 
-        public XLWorkbook GetWorkbook() => _workbook;
+        public XLWorkbook GetWorkbookReport() => _workbookReport;
+        public XLWorkbook GetWorkbookUpload()=> _workbookUpload ;
         public Task<MemoryStream> CreateWorkbookAsync()
             => Task.FromResult(new MemoryStream());
 
-        public async Task SaveAsync(MemoryStream stream, string path, string fileName)
+        public async Task SaveReportAsync(MemoryStream stream, string path, string fileName)
         {
             try
             {
-                _logger.LogInformation("Starting SaveAsync...");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SaveReportAsync"), $"ExcelExporter: SaveReportAsync --typeReport:Info");
                 string folderPath = Path.Combine(path, fileName);
-                _workbook.SaveAs(folderPath);
+                _workbookReport.SaveAs(folderPath);
                 await Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to Save final excel in  (path)", path);
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveReportAsync --typeReport:Error");
+                throw;
+            }
+
+        }
+        public async Task SaveUploadAsync(MemoryStream stream, string path, string fileName)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SaveUploadAsync"), $"ExcelExporter: SaveUploadAsync --typeReport:Info");
+                string folderPath = Path.Combine(path, fileName);
+                _workbookUpload.SaveAs(folderPath);
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveUploadAsync --typeReport:Error");
                 throw;
             }
 

@@ -6,7 +6,7 @@
         public string PtokenDB { get; set; }
         public string ObjecttokenDB { get; set; }
         public string FromDateDB { get; set; }
-        public string ToDate { get; set; }
+        public string ToDateDB { get; set; }
         public string TarazType { get; set; }
         public string OrginalClientAddressDB { get; set; }
         public string FromVoucherNum { get; set; }
