@@ -1,18 +1,19 @@
-﻿using DocumentFormat.OpenXml.Office2016.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using WriteBalance.Domain.Entities;
-using WriteBalance.Application.Interfaces;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2016.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Newtonsoft.Json;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
-using Newtonsoft.Json;
+using WriteBalance.Application.Interfaces;
 using WriteBalance.Common.Logging;
+using WriteBalance.Domain.Entities;
 
 namespace WriteBalance.Infrastructure.Services
 {
@@ -71,11 +72,14 @@ namespace WriteBalance.Infrastructure.Services
                     excelExporter.SaveReportAsync(streamReport, FolderPath, "Raw_Balance.xlsx");
                     Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
 
+                    var ekhtelaf = Math.Abs(totalBed - totalBes);
+                    string formatted = ekhtelaf.ToString("#,##0.##");
+
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $"مانده بدهکار {totalBed} و مانده بستانکار {totalBes} برابر نمی باشد.  " }
+                            Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
                         },
                     FolderPath
                     );
@@ -86,6 +90,8 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
                 int row = 2;
+
+                Logger.WriteEntry(JsonConvert.SerializeObject($"merged rows count:{mergedRows.Count}"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Info");
 
                 foreach (var item in mergedRows)
                 {
@@ -171,7 +177,16 @@ namespace WriteBalance.Infrastructure.Services
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRawTablesAsync"), $"BalanceGenerator:GenerateRawTablesAsync --typeReport:Info");
                 var worksheet = workbook.Worksheets.Add("تراز خام");
                 worksheet.RightToLeft = true;
-                int row = 2;
+                int row = 1;
+
+
+                worksheet.Cell(row, 1).Value = "کد حساب کل";
+                worksheet.Cell(row, 2).Value = "عنوان حساب کل";
+                worksheet.Cell(row, 3).Value = "کد حساب معین";
+                worksheet.Cell(row, 4).Value = "عنوان حساب معین";
+                worksheet.Cell(row, 5).Value = "بدهکار";
+                worksheet.Cell(row, 6).Value = "بستانکار";
+                row = 2;
 
                 foreach (var item in financialRecords)
                 {
@@ -258,11 +273,14 @@ namespace WriteBalance.Infrastructure.Services
                     excelExporter.SaveReportAsync(streamReport, FolderPath, "Raw_Balance.xlsx");
                     Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
 
+                    var ekhtelaf = Math.Abs(totalBed - totalBes);
+                    string formatted = ekhtelaf.ToString("#,##0.##");
+
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $"مانده بدهکار {totalBed} و مانده بستانکار {totalBes} برابر نمی باشد.  " }
+                            Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
                         },
                     FolderPath
                     );
@@ -338,8 +356,8 @@ namespace WriteBalance.Infrastructure.Services
                     {
                         Col1 = code,
                         Col2 = title,
-                        Col3 = x.Mande_Bed,
-                        Col4 = x.Mande_Bes,
+                        Col3 = (decimal)x.Mande_Bed,
+                        Col4 = (decimal)x.Mande_Bes,
                     };
 
                 }).ToList();
@@ -378,11 +396,14 @@ namespace WriteBalance.Infrastructure.Services
                     excelExporter.SaveReportAsync(streamReport, FolderPath, "Raw_Balance.xlsx");
                     Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Error");
 
+                    var ekhtelaf = Math.Abs(totalBed - totalBes);
+                    string formatted = ekhtelaf.ToString("#,##0.##");
+
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $"مانده بدهکار {totalBed} و مانده بستانکار {totalBes} برابر نمی باشد.  " }
+                            Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
                         },
                     FolderPath
                     );
@@ -393,6 +414,9 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
                 int row = 2;
+
+                Logger.WriteEntry(JsonConvert.SerializeObject($"merged rows count:{mergedRows.Count}"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Info");
+
 
                 foreach (var item in mergedRows)
                 {
@@ -431,8 +455,22 @@ namespace WriteBalance.Infrastructure.Services
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRawRayanTablesAsync"), $"BalanceGenerator:GenerateRawRayanTablesAsync --typeReport:Info");
                 var worksheet = workbook.Worksheets.Add("تراز خام");
                 worksheet.RightToLeft = true;
-                int row = 2;
+                int row = 1;
 
+                worksheet.Cell(row, 1).Value = "کد حساب کل";
+                worksheet.Cell(row, 2).Value = "عنوان حساب کل";
+                worksheet.Cell(row, 3).Value = "کد حساب معین";
+                worksheet.Cell(row, 4).Value = "عنوان حساب معین";
+                worksheet.Cell(row, 5).Value = "کد حساب تفصیلی";
+                worksheet.Cell(row, 6).Value = "عنوان حساب تفصیلی";
+                worksheet.Cell(row, 7).Value = "کد جز 1";
+                worksheet.Cell(row, 8).Value = "عنوان جز 1";
+                worksheet.Cell(row, 9).Value = "کد جز 2";
+                worksheet.Cell(row, 10).Value = "عنوان جز 2";
+                worksheet.Cell(row, 11).Value = "بدهکار";
+                worksheet.Cell(row, 12).Value = "بستانکار";
+
+                row = 2;
                 foreach (var item in financialRecords)
                 {
                     worksheet.Cell(row, 1).Value = item.Kol_Code;

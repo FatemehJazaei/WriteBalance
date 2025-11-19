@@ -15,10 +15,70 @@ namespace WriteBalance.Infrastructure.Services
     public class CheckInput
     {
 
+        public bool CheckDateInput(DBRequestDto requestDB, string startFinancialPeriod, string endFinancialPeriod )
+        {
+            try {
+ 
+                    if (int.Parse(requestDB.ToDateDB) < 0 || int.Parse(requestDB.FromDateDB) < 0)
+                    {
+
+                        Logger.WriteEntry(JsonConvert.SerializeObject("Date is negetive"), $"CheckDateInput--typeReport:Error");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $" ورودی نامعتبر " }
+                            },
+                        requestDB.FolderPath
+                        );
+                    }
+
+
+                    if (int.Parse(requestDB.ToDateDB) < int.Parse(requestDB.FromDateDB) || int.Parse(endFinancialPeriod) < int.Parse(startFinancialPeriod) )
+                {
+
+                        Logger.WriteEntry(JsonConvert.SerializeObject("Date is invalid"), $"CheckDateInput--typeReport:Error");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $" ورودی نامعتبر " }
+                            },
+                        requestDB.FolderPath
+                        );
+                    }
+
+                if (int.Parse(requestDB.ToDateDB) < int.Parse(requestDB.FromDateDB) || int.Parse(endFinancialPeriod) < int.Parse(startFinancialPeriod))
+                {
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject("Date is invalid"), $"CheckDateInput--typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $" ورودی نامعتبر " }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<bool> CheckUserInput(Dictionary<string, string> config)
         {
+
             try
             {
+                /*
 
                 if (config["OnlyVoucherNum"] != "" ||  config["ToVoucherNum"]  != ""  ||  config["OnlyVoucherNum"] != "" ||  config["ExceptVoucherNum"] != "")
                 {
@@ -81,7 +141,7 @@ namespace WriteBalance.Infrastructure.Services
                         );
                     }
                 }
-
+                */
                 if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("tarazType is invalid"), $"CheckInput--typeReport:Error");

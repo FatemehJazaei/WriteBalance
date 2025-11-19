@@ -50,26 +50,25 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
 
-                //config["op"] = "E:\\Projects";
-                //config["of"] = "WriteBalance";
-                //config["pi"] = "5046";
-                config["AddressServerBank"] = "Exir-203";
-                config["DataBaseNameBank"] = "Database1";
+
+                //config["AddressServerBank"] = "Exir-203";
+                //config["DataBaseNameBank"] = "Database1";
                 config["UserNameDB"] = "SysSouratMali";
                 config["ptokenDB"] = "c3d8e6a3459b15c9";
                 config["objecttokenDB"] = "3d9758851923e42b";
-                config["FromDateDB"] = "14030101";
-                config["ToDateDB"] = "14031230";
-                //config["tarazType"] = "1";
                 config["OrginalClientAddressDB"] = "10.15.52.97";
-                //config["PrintOrReport"] = "1";
-                //config["BalanceName"] = "BalanceTest1";
                 config["FromVoucherNum"] = "";
                 config["ToVoucherNum"] = "";
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
-
-
+                /*
+                config["op"] = "E:\\Projects";
+                config["of"] = "WriteBalance";
+                config["pi"] = "5046";
+                config["tarazType"] = "1";
+                config["PrintOrReport"] = "1";
+                config["BalanceName"] = "BalanceTest1";
+                */
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
                 filePath = Path.GetFullPath(filePath);
 

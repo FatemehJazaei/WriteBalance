@@ -29,7 +29,7 @@ namespace WriteBalanceConsoleApp
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
 
-                var InputValid = await _checkInput.CheckUserInput(config); 
+                var InputValid = await _checkInput.CheckUserInput(config);
 
                 string folderName = config["of"];
                 string path = config["op"];
@@ -56,6 +56,12 @@ namespace WriteBalanceConsoleApp
                     FolderPath = folderPath,
                     FileName = fileName,
                 };
+
+                if(!int.TryParse(config["ToDateDB"], out var number) || !int.TryParse(config["FromDateDB"], out var number1)){
+                    config["ToDateDB"] = "";
+                    config["FromDateDB"] = "";
+                }
+
 
                 var requestDB = new DBRequestDto
                 {

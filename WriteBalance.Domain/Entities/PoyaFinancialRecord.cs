@@ -16,8 +16,8 @@ namespace WriteBalance.Domain.Entities
 
         public string Arz_Code { get; set; }
 
-        public long Mande_Bed { get; set; }
-        public long Mande_Bes { get; set; }
+        public decimal Mande_Bed { get; set; }
+        public decimal Mande_Bes { get; set; }
 
     }
 }

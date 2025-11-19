@@ -10,7 +10,7 @@ namespace WriteBalance.Domain.Entities
     {
         public string Col1 { get; set; }
         public string Col2 { get; set; }
-        public long Col3 { get; set; }
-        public long Col4 { get; set; }
+        public decimal Col3 { get; set; }
+        public decimal Col4 { get; set; }
     }
 }

@@ -23,8 +23,8 @@ namespace WriteBalance.Domain.Entities
         public string joze2_Code { get; set; }
         public string joze2_Title { get; set; }
 
-        public long Mande_Bed { get; set; }
-        public long Mande_Bes { get; set; }
+        public double Mande_Bed { get; set; }
+        public double Mande_Bes { get; set; }
 
     }
 }

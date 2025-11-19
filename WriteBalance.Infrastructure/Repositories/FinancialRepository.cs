@@ -21,6 +21,7 @@ namespace WriteBalance.Infrastructure.Repositories
     {
         private readonly BankDbContext _context;
         private readonly RayanBankDbContext _rayanContext;
+        private readonly CheckInput _checkInput;
         private readonly bool _IsTest;
 
         public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext)
@@ -76,9 +77,23 @@ namespace WriteBalance.Infrastructure.Repositories
 
             try
             {
+                _context.Database.SetCommandTimeout(300);
+
                 string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
                 string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
-                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteSPList --typeReport:Debug");
+
+                if (requestDB.FromDateDB != "")
+                {
+                    startTimePersian = requestDB.FromDateDB;
+                }
+                if (requestDB.ToDateDB != "")
+                {
+                    endTimePersian = requestDB.ToDateDB;
+                }
+
+                bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
+
+                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
 
                 if (_IsTest)
                 {
@@ -103,7 +118,7 @@ namespace WriteBalance.Infrastructure.Repositories
                 {
                     var result = _context.FinancialRecord
                                 .FromSqlRaw(
-                                    @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
+                                    @"EXEC  [10.15.43.83].DWProxyDB.dbo.MainProc
                                                             @username = {0}, 
                                                             @ptoken = {1}, 
                                                             @objecttoken = {2}, 
@@ -116,6 +131,9 @@ namespace WriteBalance.Infrastructure.Repositories
                                     requestDB.OrginalClientAddressDB
                                 )
                                 .ToList();
+
+
+
                     return result;
                 }
 
@@ -152,11 +170,8 @@ namespace WriteBalance.Infrastructure.Repositories
             var tarazName = "رایان";
             requestDB.TarazType = "2";
 
-            string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
-            string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
-            Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
 
-            if (_context == null)
+            if (_rayanContext == null)
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($"context is null"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 throw new ConnectionMessageException(
@@ -172,6 +187,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
             if (_rayanContext.RayanFinancialBalance == null)
             {
+
                 Logger.WriteEntry(JsonConvert.SerializeObject($"_rayanContext.RayanFinancialBalance is null"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                         new ConnectionMessage
@@ -185,6 +201,23 @@ namespace WriteBalance.Infrastructure.Repositories
 
             try
             {
+                string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
+                string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
+
+                if (requestDB.FromDateDB != "")
+                {
+                    startTimePersian = requestDB.FromDateDB;
+                }
+                if (requestDB.ToDateDB != "")
+                {
+                    endTimePersian = requestDB.ToDateDB;
+                }
+
+                bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
+
+                _rayanContext.Database.SetCommandTimeout(300);
+
                 if (_IsTest)
                 {
                     var result = _rayanContext.RayanFinancialBalance
@@ -194,7 +227,7 @@ namespace WriteBalance.Infrastructure.Repositories
 		            @ToDate = {1},
 		            @FromVoucherNum = {2},
 		            @ToVoucherNum = {3}",
-                        startTimePersian,
+                       startTimePersian,
                         endTimePersian,
                         requestDB.FromVoucherNum,
                         requestDB.ToVoucherNum
@@ -205,23 +238,27 @@ namespace WriteBalance.Infrastructure.Repositories
                 else
                 {
                     var result = _rayanContext.RayanFinancialBalance
-            .FromSqlRaw(
+                .FromSqlRaw(
                 @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
 		                                    @FromDate = {0}, 
 		                                    @ToDate = {1},
 		                                    @FromVoucherNum = {2},
 		                                    @ToVoucherNum = {3}",
-                startTimePersian,
-                endTimePersian,
-                requestDB.FromVoucherNum,
-                requestDB.ToVoucherNum
+                int.Parse(startTimePersian),
+                int.Parse(endTimePersian),
+                 //requestDB.FromVoucherNum,
+                 //requestDB.ToVoucherNum
+                 DBNull.Value,
+                 DBNull.Value
             )
             .ToList();
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"rayan list count:{result.Count}"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Info");
                     return result;
                 }
 
             }
-            catch( Exception ex )
+            catch ( Exception ex )
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
@@ -244,10 +281,6 @@ namespace WriteBalance.Infrastructure.Repositories
 
             var tarazName = "پویا";
             requestDB.TarazType = "5";
-
-            string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
-            string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
-            Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
 
             if (_context == null)
             {
@@ -279,7 +312,24 @@ namespace WriteBalance.Infrastructure.Repositories
 
             try
             {
-                if(_IsTest) 
+                string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
+                string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
+
+                if (requestDB.FromDateDB != "")
+                {
+                    startTimePersian = requestDB.FromDateDB;
+                }
+                if (requestDB.ToDateDB != "")
+                {
+                    endTimePersian = requestDB.ToDateDB;
+                }
+
+                bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
+
+                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
+                _context.Database.SetCommandTimeout(300);
+
+                if (_IsTest) 
                 {
                     var result = _context.FinancialRecord
                 .FromSqlRaw(
