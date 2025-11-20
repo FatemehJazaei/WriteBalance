@@ -17,10 +17,11 @@ namespace WriteBalance.Infrastructure.Services
 
         public bool CheckDateInput(DBRequestDto requestDB, string startFinancialPeriod, string endFinancialPeriod )
         {
-            try {
- 
-                    if (int.Parse(requestDB.ToDateDB) < 0 || int.Parse(requestDB.FromDateDB) < 0)
-                    {
+            try 
+            {
+
+                if (int.Parse(requestDB.ToDateDB) < 0 || int.Parse(requestDB.FromDateDB) < 0)
+                {
 
                         Logger.WriteEntry(JsonConvert.SerializeObject("Date is negetive"), $"CheckDateInput--typeReport:Error");
 
@@ -32,12 +33,11 @@ namespace WriteBalance.Infrastructure.Services
                             },
                         requestDB.FolderPath
                         );
-                    }
+                }
 
 
                     if (int.Parse(requestDB.ToDateDB) < int.Parse(requestDB.FromDateDB) || int.Parse(endFinancialPeriod) < int.Parse(startFinancialPeriod) )
-                {
-
+                    {
                         Logger.WriteEntry(JsonConvert.SerializeObject("Date is invalid"), $"CheckDateInput--typeReport:Error");
 
                         throw new ConnectionMessageException(
@@ -50,7 +50,7 @@ namespace WriteBalance.Infrastructure.Services
                         );
                     }
 
-                if (int.Parse(requestDB.ToDateDB) < int.Parse(requestDB.FromDateDB) || int.Parse(endFinancialPeriod) < int.Parse(startFinancialPeriod))
+                if (int.Parse(startFinancialPeriod) < int.Parse(requestDB.FromDateDB) || int.Parse(requestDB.ToDateDB) < int.Parse(endFinancialPeriod))
                 {
 
                     Logger.WriteEntry(JsonConvert.SerializeObject("Date is invalid"), $"CheckDateInput--typeReport:Error");

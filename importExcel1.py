@@ -28,8 +28,6 @@ for excel_path in excel_files:
         dtype={
             "Kol_Code": str,
             "Moeen_Code": str,
-            "Mande_Bed": "Int64",
-            "Mande_Bes": "Int64",
         }
     )
 
@@ -47,6 +45,13 @@ for excel_path in excel_files:
             "Moeen_Title": types.NVARCHAR(length=255),
             "Kol_Code": types.NVARCHAR(length=255),
             "Moeen_Code": types.NVARCHAR(length=255),
+            "Tafzil_Code": types.NVARCHAR(length=255),
+            "Tafzil_Tilte": types.NVARCHAR(length=255),
+            "FinApplication_Title": types.NVARCHAR(length=255),
+            "Gardersh_Bed":types.DECIMAL,
+            "Gardersh_Bes":types.DECIMAL,
+            "Mande_Bed":types.DECIMAL,
+            "Mande_Bes":types.DECIMAL,
         },
     )
 

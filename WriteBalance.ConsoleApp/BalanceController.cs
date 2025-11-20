@@ -40,8 +40,6 @@ namespace WriteBalanceConsoleApp
                 if (!Directory.Exists($"{path}/{folderName}"))
                     Directory.CreateDirectory($"{path}/{folderName}");
 
-                var timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                string fileName = $"{config["BalanceName"]}_{timestamp}.xlsx";
                 string folderPath = Path.Combine(path, folderName);
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
@@ -54,7 +52,7 @@ namespace WriteBalanceConsoleApp
                     BaseUrl = config["AddressAPI"],
                     BalanceName = config["BalanceName"],
                     FolderPath = folderPath,
-                    FileName = fileName,
+                    FileName = "",
                 };
 
                 if(!int.TryParse(config["ToDateDB"], out var number) || !int.TryParse(config["FromDateDB"], out var number1)){
@@ -70,6 +68,7 @@ namespace WriteBalanceConsoleApp
                     ObjecttokenDB = config["objecttokenDB"],
                     OrginalClientAddressDB = config["OrginalClientAddressDB"],
                     TarazType = config["tarazType"],
+                    AllOrHasMandeh = config["AllOrHasMandeh"],
                     FromDateDB = config["FromDateDB"],
                     ToDateDB = config["ToDateDB"],
                     FromVoucherNum = config["FromVoucherNum"],
@@ -78,7 +77,7 @@ namespace WriteBalanceConsoleApp
                     OnlyVoucherNum = config["OnlyVoucherNum"],
                     PrintOrReport = config["PrintOrReport"],
                     FolderPath = folderPath,
-                    FileName = fileName,
+                    FileName = "",
                 };
 
                 var result = await _writeBalanceHandler.HandleAsync(request, requestDB);

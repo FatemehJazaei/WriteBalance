@@ -8,6 +8,7 @@
         public string FromDateDB { get; set; }
         public string ToDateDB { get; set; }
         public string TarazType { get; set; }
+        public string AllOrHasMandeh { get; set; }
         public string OrginalClientAddressDB { get; set; }
         public string FromVoucherNum { get; set; }
         public string ToVoucherNum { get; set; }

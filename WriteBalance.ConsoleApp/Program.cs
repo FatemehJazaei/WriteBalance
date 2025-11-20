@@ -52,9 +52,9 @@ class Program
                         options.UseSqlServer(connectionString));
 
                     //string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};User Id={config["UserNameBank"]};Password={config["PasswordBank"]};TrustServerCertificate=True;";
-                    //string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
+                    string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
 
-                    string bankConnectionString = $"Server={config["AddressServer"]};Database={config["DataBaseName"]};User Id={config["UserName"]};Password={config["Password"]};TrustServerCertificate=True;";
+                    //string bankConnectionString = $"Server={config["AddressServer"]};Database={config["DataBaseName"]};User Id={config["UserName"]};Password={config["Password"]};TrustServerCertificate=True;";
 
                     services.AddDbContext<BankDbContext>(options =>
                         options.UseSqlServer(bankConnectionString));

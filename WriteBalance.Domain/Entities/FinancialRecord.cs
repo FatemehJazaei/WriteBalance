@@ -14,6 +14,13 @@ namespace WriteBalance.Domain.Entities
         public string Moeen_Code { get; set; }
         public string Moeen_Title { get; set; }
 
+        public string Tafzil_Code { get; set; }
+        public string Tafzil_Tilte { get; set; }
+
+        public string FinApplication_Title { get; set; }
+
+        public decimal Gardersh_Bed { get; set; }
+        public decimal Gardersh_Bes { get; set; }
 
         public decimal Mande_Bed { get; set; }
         public decimal Mande_Bes { get; set; }

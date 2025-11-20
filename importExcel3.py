@@ -38,8 +38,10 @@ df.to_sql(
         "حساب تفصیلی": types.NVARCHAR(length=255),
         "حساب جز1": types.NVARCHAR(length=255),
         "حساب جز2": types.NVARCHAR(length=255),
-        "بدهکار": types.BIGINT,
-        "بستانکار": types.BIGINT,
+        "بدهکار": types.DECIMAL,
+        "بستانکار": types.DECIMAL,
+        "مانده بدهکار": types.DECIMAL,
+        "مانده بستانکار": types.DECIMAL,
     },
 )
 

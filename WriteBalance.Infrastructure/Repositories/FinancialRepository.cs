@@ -24,14 +24,15 @@ namespace WriteBalance.Infrastructure.Repositories
         private readonly CheckInput _checkInput;
         private readonly bool _IsTest;
 
-        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext)
+        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, CheckInput checkInput)
         {
             _context = context;
             _rayanContext = rayanContext;
-            _IsTest = false;
+            _checkInput = checkInput;
+            _IsTest = true;
         }
 
-        public List<FinancialRecord> ExecuteSPList(DBRequestDto requestDB, DateTime startTime, DateTime endTime)
+        public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, DateTime startTime, DateTime endTime)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteSPList ."), $"FinancialRepository: ExecuteSPList--typeReport:Info");
             var tarazName = "";
@@ -92,6 +93,9 @@ namespace WriteBalance.Infrastructure.Repositories
                 }
 
                 bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
+
+                var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
+                requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
 
@@ -163,7 +167,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<RayanFinancialRecord> ExecuteRayanSPList(DBRequestDto requestDB, DateTime startTime, DateTime endTime)
+        public List<RayanFinancialRecord> ExecuteRayanSPList(APIRequestDto request, DBRequestDto requestDB, DateTime startTime, DateTime endTime)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteRayanSPList "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Info");
 
@@ -214,6 +218,11 @@ namespace WriteBalance.Infrastructure.Repositories
                 }
 
                 bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
+
+                var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
+                requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+                request.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
 
                 _rayanContext.Database.SetCommandTimeout(300);
@@ -275,7 +284,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<FinancialRecord> ExecutePoyaSPList(DBRequestDto requestDB, DateTime startTime, DateTime endTime)
+        public List<FinancialRecord> ExecutePoyaSPList(APIRequestDto request, DBRequestDto requestDB, DateTime startTime, DateTime endTime)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecutePoyaSPList "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
 
@@ -325,6 +334,10 @@ namespace WriteBalance.Infrastructure.Repositories
                 }
 
                 bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
+
+                var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
+                requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+                request.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
                 _context.Database.SetCommandTimeout(300);

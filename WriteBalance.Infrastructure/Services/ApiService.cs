@@ -56,7 +56,6 @@ namespace WriteBalance.Infrastructure.Services
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(url, payload, options);
-                Logger.WriteEntry(JsonConvert.SerializeObject($"Response from {url} {response}"), $"ApiService: GetVerifyUniqueNameAsync--typeReport:Debug");
 
                 response.EnsureSuccessStatusCode();
                 if (!response.IsSuccessStatusCode)
@@ -121,16 +120,12 @@ namespace WriteBalance.Infrastructure.Services
                     showCancel = true
                 };
 
-                Logger.WriteEntry(JsonConvert.SerializeObject($"payload: {payload}"), $"ApiService: PostFileAsync--typeReport:Debug");
-
                 var options = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 };
 
                 var response = await _httpClient.PostAsJsonAsync(url, payload, options);
-                Logger.WriteEntry(JsonConvert.SerializeObject($"Response from {url}: {response}"), $"ApiService: PostFileAsync--typeReport:Debug");
-                Logger.WriteEntry(JsonConvert.SerializeObject(response), $"ApiService: PostFileAsync--typeReport:Debug");
 
                 response.EnsureSuccessStatusCode();
 
@@ -144,11 +139,8 @@ namespace WriteBalance.Infrastructure.Services
                 var json = await response.Content.ReadAsStringAsync();
                 Logger.WriteEntry(JsonConvert.SerializeObject(json), $"ApiService: PostFileAsync--typeReport:Debug");
 
-
                 using var doc = JsonDocument.Parse(json);
-                Logger.WriteEntry(JsonConvert.SerializeObject($"response doc: {doc.ToString()}"), $"ApiService: PostFileAsync--typeReport:Debug");
-
-                
+   
                 if (doc.RootElement.TryGetProperty("models", out var models) && models.GetArrayLength() > 0)
                 {
 

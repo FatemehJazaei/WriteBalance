@@ -38,7 +38,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 var payload = new
                 {
-                    userName = request.UserNameAPI,
+                    userName = request.UserNameAPI + $"{companyId}",
                     password = request.PasswordAPI,
                     companyId = companyId,
                     periodId = request.PeriodId
@@ -56,7 +56,6 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(json);
                 var token = System.Text.Json.JsonSerializer.Deserialize<string>(json);
 
                 return token!;
