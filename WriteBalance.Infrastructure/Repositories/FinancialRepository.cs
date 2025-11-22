@@ -21,10 +21,10 @@ namespace WriteBalance.Infrastructure.Repositories
     {
         private readonly BankDbContext _context;
         private readonly RayanBankDbContext _rayanContext;
-        private readonly CheckInput _checkInput;
+        private readonly ICheckInput _checkInput;
         private readonly bool _IsTest;
 
-        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, CheckInput checkInput)
+        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, ICheckInput checkInput)
         {
             _context = context;
             _rayanContext = rayanContext;
@@ -32,7 +32,7 @@ namespace WriteBalance.Infrastructure.Repositories
             _IsTest = true;
         }
 
-        public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, DateTime startTime, DateTime endTime)
+        public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteSPList ."), $"FinancialRepository: ExecuteSPList--typeReport:Info");
             var tarazName = "";
@@ -79,20 +79,6 @@ namespace WriteBalance.Infrastructure.Repositories
             try
             {
                 _context.Database.SetCommandTimeout(300);
-
-                string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
-                string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
-
-                if (requestDB.FromDateDB != "")
-                {
-                    startTimePersian = requestDB.FromDateDB;
-                }
-                if (requestDB.ToDateDB != "")
-                {
-                    endTimePersian = requestDB.ToDateDB;
-                }
-
-                bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
 
                 var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
                 requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
@@ -167,7 +153,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<RayanFinancialRecord> ExecuteRayanSPList(APIRequestDto request, DBRequestDto requestDB, DateTime startTime, DateTime endTime)
+        public List<RayanFinancialRecord> ExecuteRayanSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteRayanSPList "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Info");
 
@@ -205,19 +191,6 @@ namespace WriteBalance.Infrastructure.Repositories
 
             try
             {
-                string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
-                string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
-
-                if (requestDB.FromDateDB != "")
-                {
-                    startTimePersian = requestDB.FromDateDB;
-                }
-                if (requestDB.ToDateDB != "")
-                {
-                    endTimePersian = requestDB.ToDateDB;
-                }
-
-                bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
 
                 var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
                 requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
@@ -284,7 +257,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<FinancialRecord> ExecutePoyaSPList(APIRequestDto request, DBRequestDto requestDB, DateTime startTime, DateTime endTime)
+        public List<FinancialRecord> ExecutePoyaSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecutePoyaSPList "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
 
@@ -321,19 +294,6 @@ namespace WriteBalance.Infrastructure.Repositories
 
             try
             {
-                string startTimePersian = DateTimeExtentions.ToPersianDate(startTime);
-                string endTimePersian = DateTimeExtentions.ToPersianDate(endTime);
-
-                if (requestDB.FromDateDB != "")
-                {
-                    startTimePersian = requestDB.FromDateDB;
-                }
-                if (requestDB.ToDateDB != "")
-                {
-                    endTimePersian = requestDB.ToDateDB;
-                }
-
-                bool correctDate = _checkInput.CheckDateInput(requestDB, startTimePersian, endTimePersian);
 
                 var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
                 requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";

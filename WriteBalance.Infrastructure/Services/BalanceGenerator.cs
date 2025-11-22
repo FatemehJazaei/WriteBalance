@@ -120,8 +120,6 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetReport.RightToLeft = true;
                 int row = 2;
 
-                Logger.WriteEntry(JsonConvert.SerializeObject($"merged rows count:{mergedRows.Count}"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Info");
-
                 foreach (var item in mergedRows)
                 {
                     if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
@@ -145,11 +143,6 @@ namespace WriteBalance.Infrastructure.Services
 
                 }
 
-                var headerRange = worksheetReport.Range("A1:k1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
-                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                headerRange.Style.Font.FontColor = XLColor.White;
 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
@@ -157,7 +150,10 @@ namespace WriteBalance.Infrastructure.Services
 
                 var range = worksheetReport.Range("H:K");
                 range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
-                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReport.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                 var usedRange = worksheetReport.RangeUsed();
 
@@ -168,6 +164,11 @@ namespace WriteBalance.Infrastructure.Services
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
 
+                var headerRange = worksheetReport.Range("A1:k1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
 
                 workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
@@ -178,7 +179,7 @@ namespace WriteBalance.Infrastructure.Services
                 streamUpload.Position = 0;
                 return await Task.FromResult(streamUpload);
             }
-            catch
+            catch (ConnectionMessageException ex)
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
                 throw;
@@ -277,18 +278,17 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
-                var headerRange = worksheet.Range("A1:k1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
-                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                headerRange.Style.Font.FontColor = XLColor.White;
+
 
                 worksheet.Style.Font.FontName = "B Nazanin";
                 worksheet.Style.Font.FontSize = 11;
 
                 var range = worksheet.Range("H:K");
                 range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
-                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheet.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                 var usedRange = worksheet.RangeUsed();
 
@@ -298,6 +298,13 @@ namespace WriteBalance.Infrastructure.Services
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
+
+                var headerRange = worksheet.Range("A1:k1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
 
                 var stream = new MemoryStream();
                 workbook.SaveAs(stream);
@@ -367,23 +374,50 @@ namespace WriteBalance.Infrastructure.Services
 
                 decimal totalBed = mergedRows.Sum(r => r.Col3);
                 decimal totalBes = mergedRows.Sum(r => r.Col4);
+                var ekhtelaf = totalBed - totalBes;
 
                 if (totalBed != totalBes)
                 {
-                    excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+                    if (Math.Abs(ekhtelaf) > 100)
+                    {
+                        excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"Not Balance with  {ekhtelaf}"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
 
-                    var ekhtelaf = Math.Abs(totalBed - totalBes);
-                    string formatted = ekhtelaf.ToString("#,##0.##");
+                        string formatted = ekhtelaf.ToString("#,##0.##");
 
-                    throw new ConnectionMessageException(
-                        new ConnectionMessage
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
+                            },
+                        requestDB.FolderPath
+                        );
+                    }
+                    else if (Math.Abs(ekhtelaf) <= 100)
+                    {
+                        if (totalBed > totalBes)
                         {
-                            MessageType = MessageType.Error,
-                            Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
-                        },
-                    requestDB.FolderPath
-                    );
+                            mergedRows.Add(new ExcelRow
+                            {
+                                Col1 = "123456789",
+                                Col2 = "بالانس",
+                                Col3 = Math.Abs(ekhtelaf),
+                                Col4 = 0,
+                            });
+                        }
+                        else
+                        {
+                            mergedRows.Add(new ExcelRow
+                            {
+                                Col1 = "123456789",
+                                Col2 = "بالانس",
+                                Col3 = 0,
+                                Col4 = Math.Abs(ekhtelaf),
+                            });
+                        }
+                    }
+
                 }
 
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
@@ -415,18 +449,17 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
 
-                var headerRange = worksheetReport.Range("A1:k1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
-                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                headerRange.Style.Font.FontColor = XLColor.White;
+
 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
 
                 var range = worksheetReport.Range("H:K");
                 range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
-                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReport.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                 var usedRange = worksheetReport.RangeUsed();
 
@@ -437,6 +470,12 @@ namespace WriteBalance.Infrastructure.Services
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
 
+                var headerRange = worksheetReport.Range("A1:k1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
                 workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
                 excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
@@ -446,7 +485,7 @@ namespace WriteBalance.Infrastructure.Services
                 streamUpload.Position = 0;
                 return await Task.FromResult(streamUpload);
             }
-            catch
+            catch (ConnectionMessageException ex)
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("GeneratePoyaTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
                 throw;
@@ -520,23 +559,50 @@ namespace WriteBalance.Infrastructure.Services
 
                 decimal totalBed = mergedRows.Sum(r => r.Col3);
                 decimal totalBes = mergedRows.Sum(r => r.Col4);
+                var ekhtelaf = totalBed - totalBes;
 
                 if (totalBed != totalBes)
                 {
-                    excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"Found {emptyCol2.Count} rows with empty Col2."), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Error");
+                    if (Math.Abs(ekhtelaf) > 100)
+                    {
+                        excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"Not Balance with  {ekhtelaf}"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Error");
 
-                    var ekhtelaf = Math.Abs(totalBed - totalBes);
-                    string formatted = ekhtelaf.ToString("#,##0.##");
+                        string formatted = ekhtelaf.ToString("#,##0.##");
 
-                    throw new ConnectionMessageException(
-                        new ConnectionMessage
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
+                            },
+                        requestDB.FolderPath
+                        );
+                    }
+                    else if (Math.Abs(ekhtelaf) <= 100)
+                    {
+                        if (totalBed > totalBes)
                         {
-                            MessageType = MessageType.Error,
-                            Messages = new List<string> { $"تراز به مقدار {formatted} بالانس نمیباشد." }
-                        },
-                    requestDB.FolderPath
-                    );
+                            mergedRows.Add(new ExcelRow
+                            {
+                                Col1 = "123456789",
+                                Col2 = "بالانس",
+                                Col3 = 0,
+                                Col4 = Math.Abs(ekhtelaf),
+                            });
+                        }
+                        else
+                        {
+                            mergedRows.Add(new ExcelRow
+                            {
+                                Col1 = "123456789",
+                                Col2 = "بالانس",
+                                Col3 = Math.Abs(ekhtelaf),
+                                Col4 = 0,
+                            });
+                        }
+                    }
+
                 }
 
                 var worksheetUpload = workbookUpload.Worksheets.Add("data");
@@ -544,8 +610,6 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
                 int row = 2;
-
-                Logger.WriteEntry(JsonConvert.SerializeObject($"merged rows count:{mergedRows.Count}"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Info");
 
                 foreach (var item in mergedRows)
                 {
@@ -569,18 +633,23 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
-                var headerRange = worksheetReport.Range("A1:V1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
-                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                headerRange.Style.Font.FontColor = XLColor.White;
+
 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
 
-                var range = worksheetReport.Range("S:V");
+                var range = worksheetReport.Range("R:V");
                 range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
-                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReport.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("F").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("H").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("J").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("L").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("O").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("Q").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                 var usedRange = worksheetReport.RangeUsed();
 
@@ -590,6 +659,12 @@ namespace WriteBalance.Infrastructure.Services
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
+                var headerRange = worksheetReport.Range("A1:V1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
 
                 workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
@@ -600,7 +675,7 @@ namespace WriteBalance.Infrastructure.Services
                 streamUpload.Position = 0;
                 return await Task.FromResult(streamUpload);
             }
-            catch
+            catch (ConnectionMessageException ex)
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Failed to GenerateRayanTablesAsync"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Error");
                 throw;
@@ -617,26 +692,26 @@ namespace WriteBalance.Infrastructure.Services
 
                 worksheet.Cell(row, 1).Value = "کد گروه";
                 worksheet.Cell(row, 2).Value = "نام گروه";
-                worksheet.Cell(row, 1).Value = "کد حساب کل";
-                worksheet.Cell(row, 2).Value = "عنوان حساب کل";
-                worksheet.Cell(row, 3).Value = "کد حساب معین";
-                worksheet.Cell(row, 4).Value = "عنوان حساب معین";
-                worksheet.Cell(row, 5).Value = "کد حساب تفصیلی";
-                worksheet.Cell(row, 6).Value = "عنوان حساب تفصیلی";
-                worksheet.Cell(row, 7).Value = "کد جز 1";
-                worksheet.Cell(row, 8).Value = "عنوان جز 1";
-                worksheet.Cell(row, 9).Value = "کد جز 2";
-                worksheet.Cell(row, 10).Value = "عنوان جز 2";
-                worksheet.Cell(row, 11).Value = "کد مرکز هزینه";
-                worksheet.Cell(row, 12).Value = "کد واحد عملیاتی";
-                worksheet.Cell(row, 13).Value = "نام واحد عملیاتی";
-                worksheet.Cell(row, 14).Value = "کد پرونده";
-                worksheet.Cell(row, 15).Value = "نام پرونده";
-                worksheet.Cell(row, 16).Value = "مانده اول دوره";
-                worksheet.Cell(row, 17).Value = "بدهکار";
-                worksheet.Cell(row, 18).Value = "بستانکار";
-                worksheet.Cell(row, 19).Value = "مانده بدهکار";
-                worksheet.Cell(row, 20).Value = "مانده بستانکار";
+                worksheet.Cell(row, 3).Value = "کد حساب کل";
+                worksheet.Cell(row, 4).Value = "عنوان حساب کل";
+                worksheet.Cell(row, 5).Value = "کد حساب معین";
+                worksheet.Cell(row, 6).Value = "عنوان حساب معین";
+                worksheet.Cell(row, 7).Value = "کد حساب تفصیلی";
+                worksheet.Cell(row, 8).Value = "عنوان حساب تفصیلی";
+                worksheet.Cell(row, 9).Value = "کد جز 1";
+                worksheet.Cell(row, 10).Value = "عنوان جز 1";
+                worksheet.Cell(row, 11).Value = "کد جز 2";
+                worksheet.Cell(row, 12).Value = "عنوان جز 2";
+                worksheet.Cell(row, 13).Value = "کد مرکز هزینه";
+                worksheet.Cell(row, 14).Value = "کد واحد عملیاتی";
+                worksheet.Cell(row, 15).Value = "نام واحد عملیاتی";
+                worksheet.Cell(row, 16).Value = "کد پرونده";
+                worksheet.Cell(row, 17).Value = "نام پرونده";
+                worksheet.Cell(row, 18).Value = "مانده اول دوره";
+                worksheet.Cell(row, 19).Value = "بدهکار";
+                worksheet.Cell(row, 20).Value = "بستانکار";
+                worksheet.Cell(row, 21).Value = "مانده بدهکار";
+                worksheet.Cell(row, 22).Value = "مانده بستانکار";
 
                 row = 2;
 
@@ -648,42 +723,47 @@ namespace WriteBalance.Infrastructure.Services
                     }
                     else
                     {
-                        worksheet.Cell(row, 1).Value = item.Kol_Code;
-                        worksheet.Cell(row, 2).Value = item.Kol_Title;
-                        worksheet.Cell(row, 3).Value = item.Moeen_Code;
-                        worksheet.Cell(row, 4).Value = item.Moeen_Title;
-                        worksheet.Cell(row, 5).Value = item.Tafsili_Code;
-                        worksheet.Cell(row, 6).Value = item.Tafsili_Title;
-                        worksheet.Cell(row, 7).Value = item.joze1_Code;
-                        worksheet.Cell(row, 8).Value = item.joze1_Title;
-                        worksheet.Cell(row, 9).Value = item.joze2_Code;
-                        worksheet.Cell(row, 10).Value = item.joze2_Title;
-                        worksheet.Cell(row, 11).Value = item.Code_Markaz_Hazineh;
-                        worksheet.Cell(row, 12).Value = item.Code_Vahed_Amaliyat;
-                        worksheet.Cell(row, 13).Value = item.Name_Vahed_Amaliyat;
-                        worksheet.Cell(row, 14).Value = item.Code_Parvandeh;
-                        worksheet.Cell(row, 15).Value = item.Name_Parvandeh;
-                        worksheet.Cell(row, 16).Value = item.Mandeh_Aval_dore;
-                        worksheet.Cell(row, 17).Value = item.bedehkar;
-                        worksheet.Cell(row, 18).Value = item.bestankar;
-                        worksheet.Cell(row, 19).Value = item.Mande_Bed;
-                        worksheet.Cell(row, 20).Value = item.Mande_Bes;
+                        worksheet.Cell(row, 1).Value = item.Group_code;
+                        worksheet.Cell(row, 2).Value = item.Group_Title;
+                        worksheet.Cell(row, 3).Value = item.Kol_Code;
+                        worksheet.Cell(row, 4).Value = item.Kol_Title;
+                        worksheet.Cell(row, 5).Value = item.Moeen_Code;
+                        worksheet.Cell(row, 6).Value = item.Moeen_Title;
+                        worksheet.Cell(row, 7).Value = item.Tafsili_Code;
+                        worksheet.Cell(row, 8).Value = item.Tafsili_Title;
+                        worksheet.Cell(row, 9).Value = item.joze1_Code;
+                        worksheet.Cell(row, 10).Value = item.joze1_Title;
+                        worksheet.Cell(row, 11).Value = item.joze2_Code;
+                        worksheet.Cell(row, 12).Value = item.joze2_Title;
+                        worksheet.Cell(row, 13).Value = item.Code_Markaz_Hazineh;
+                        worksheet.Cell(row, 14).Value = item.Code_Vahed_Amaliyat;
+                        worksheet.Cell(row, 15).Value = item.Name_Vahed_Amaliyat;
+                        worksheet.Cell(row, 16).Value = item.Code_Parvandeh;
+                        worksheet.Cell(row, 17).Value = item.Name_Parvandeh;
+                        worksheet.Cell(row, 18).Value = item.Mandeh_Aval_dore;
+                        worksheet.Cell(row, 19).Value = item.bedehkar;
+                        worksheet.Cell(row, 20).Value = item.bestankar;
+                        worksheet.Cell(row, 21).Value = item.Mande_Bed;
+                        worksheet.Cell(row, 22).Value = item.Mande_Bes;
                         row++;
                     }
                 }
 
-                var headerRange = worksheet.Range("A1:V1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
-                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                headerRange.Style.Font.FontColor = XLColor.White;
-
                 worksheet.Style.Font.FontName = "B Nazanin";
                 worksheet.Style.Font.FontSize = 11;
 
-                var range = worksheet.Range("S:V");
+                var range = worksheet.Range("R:V");
                 range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
-                range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                worksheet.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheet.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("F").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("H").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("J").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("L").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("O").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("Q").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                 var usedRange = worksheet.RangeUsed();
 
@@ -693,6 +773,13 @@ namespace WriteBalance.Infrastructure.Services
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
+
+                var headerRange = worksheet.Range("A1:V1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
 
                 var stream = new MemoryStream();
                 workbook.SaveAs(stream);

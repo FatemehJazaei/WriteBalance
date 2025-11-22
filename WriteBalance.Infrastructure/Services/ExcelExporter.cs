@@ -45,6 +45,22 @@ namespace WriteBalance.Infrastructure.Services
                 Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveReportAsync --typeReport:Error");
                 throw;
             }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.SetLength(0); 
+                    stream.Position = 0;  
+                    stream.Dispose();    
+                }
+
+                if (_workbookReport != null)
+                {
+                    _workbookReport.Worksheets.Delete("تراز خام");
+                    _workbookReport.Worksheets.Delete("تراز اکسیر");
+                    _workbookReport.Dispose();   
+                }
+            }
 
         }
         public async Task SaveUploadAsync(MemoryStream stream, string path, string fileName)
@@ -60,6 +76,21 @@ namespace WriteBalance.Infrastructure.Services
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveUploadAsync --typeReport:Error");
                 throw;
+            }
+            finally
+            {               
+                if (stream != null)
+                {
+                    stream.SetLength(0);  
+                    stream.Position = 0; 
+                    stream.Dispose();     
+                }
+
+                if (_workbookUpload != null)
+                {
+                    _workbookUpload.Worksheets.Delete("Data");
+                    _workbookUpload.Dispose();  
+                }
             }
 
         }

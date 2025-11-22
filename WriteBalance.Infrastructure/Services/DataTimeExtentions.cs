@@ -36,6 +36,23 @@ namespace WriteBalance.Infrastructure.Services
 
         }
 
+        public static bool IValidDate(string dateStr)
+        {
+            try 
+            {
+                int year = int.Parse(dateStr.Substring(0, 4));
+                int month = int.Parse(dateStr.Substring(4, 2));
+                int day = int.Parse(dateStr.Substring(6, 2));
+
+                var dt = PersianCalendar.ToDateTime(year, month, day, 0, 0, 0, 0);
+
+                return true; 
+            }
+            catch 
+            {
+                return false;
+            } 
+        }
 
         //تشخیص سال کبیسه
         public static bool IsLeapYear(this DateTime date)

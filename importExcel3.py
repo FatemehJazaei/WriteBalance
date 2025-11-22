@@ -12,6 +12,11 @@ df = pd.read_excel(
         "حساب تفصیلی": str,
         "حساب جز1": str,
         "حساب جز2": str,
+        "کد مرکز هزینه": str,
+        "کد واحد عملیاتی": str,
+        "نام واحد عملیاتی": str,
+        "کد پرونده": str,
+        "نام پرونده": str,
     }
 )
 
@@ -27,6 +32,7 @@ df.to_sql(
     if_exists="append",
     index=False,
     dtype={
+        "کد گروه": types.NVARCHAR(length=255),
         "نام گروه": types.NVARCHAR(length=255),
         "نام حساب کل": types.NVARCHAR(length=255),
         "نام حساب معین": types.NVARCHAR(length=255),
@@ -38,10 +44,16 @@ df.to_sql(
         "حساب تفصیلی": types.NVARCHAR(length=255),
         "حساب جز1": types.NVARCHAR(length=255),
         "حساب جز2": types.NVARCHAR(length=255),
-        "بدهکار": types.DECIMAL,
-        "بستانکار": types.DECIMAL,
-        "مانده بدهکار": types.DECIMAL,
-        "مانده بستانکار": types.DECIMAL,
+        "کد مرکز هزینه":  types.NVARCHAR(length=255),
+        "کد واحد عملیاتی":  types.NVARCHAR(length=255),
+        "نام واحد عملیاتی":  types.NVARCHAR(length=255),
+        "کد پرونده":  types.NVARCHAR(length=255),
+        "نام پرونده":  types.NVARCHAR(length=255),
+        "مانده اول دوره": types.Float,
+        "بدهکار": types.Float,
+        "بستانکار": types.Float,
+        "مانده بدهکار": types.Float,
+        "مانده بستانکار": types.Float,
     },
 )
 

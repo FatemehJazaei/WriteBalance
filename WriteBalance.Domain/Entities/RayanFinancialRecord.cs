@@ -26,12 +26,11 @@ namespace WriteBalance.Domain.Entities
         public string joze2_Code { get; set; }
         public string joze2_Title { get; set; }
 
-        public string Code_Markaz_Hazineh { get; set; }
-        public string Markaz_Hazineh { get; set; }
-        public string Code_Vahed_Amaliyat { get; set; }
-        public string Name_Vahed_Amaliyat { get; set; }
-        public string Code_Parvandeh { get; set; }
-        public string Name_Parvandeh { get; set; }
+        public string? Code_Markaz_Hazineh { get; set; }
+        public string? Code_Vahed_Amaliyat { get; set; }
+        public string? Name_Vahed_Amaliyat { get; set; }
+        public string? Code_Parvandeh { get; set; }
+        public string? Name_Parvandeh { get; set; }
 
         public double Mandeh_Aval_dore { get; set; }
         public double bedehkar { get; set; }

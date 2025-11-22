@@ -1,6 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +30,7 @@ namespace WriteBalance.Application.Handlers
         private readonly IPeriodRepository _periodRepository;
         private readonly IBalanceGenerator _balanceGenerator;
         private readonly IFileEncoder _fileEncoder;
+        private readonly ICheckInput _checkInput;
         private readonly Logger _logger;
 
         public WriteBalanceHandler(
@@ -40,6 +40,7 @@ namespace WriteBalance.Application.Handlers
             IFinancialRepository financialRepository,
             IExcelExporter excelExporter,
             IPeriodRepository periodRepository,
+            ICheckInput checkInput,
             IFileEncoder fileEncoder, Logger logger)
         {
             _authService = authService;
@@ -48,6 +49,7 @@ namespace WriteBalance.Application.Handlers
             _excelExporter = excelExporter;
             _periodRepository = periodRepository;
             _balanceGenerator = balanceGenerator;
+            _checkInput = checkInput;
             _fileEncoder = fileEncoder;
         }
 
@@ -138,7 +140,8 @@ namespace WriteBalance.Application.Handlers
                 {
                     return await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                 }
-                else if (requestDB.TarazType == "2") {
+                else if (requestDB.TarazType == "2") 
+                {
                      return await Handle_Rayan_Async(request, requestDB); ;
                 }
                 else if (requestDB.TarazType == "5") {
@@ -175,7 +178,10 @@ namespace WriteBalance.Application.Handlers
              (var CompanyId, DateTime startTime, DateTime endTime ) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTime, endTime);
+            (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput( requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
 
@@ -216,7 +222,10 @@ namespace WriteBalance.Application.Handlers
             (var CompanyId, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecutePoyaSPList(request, requestDB, startTime, endTime);
+            (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecutePoyaSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecutePoyaSPList done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             excelStream = await _balanceGenerator.GeneratePoyaTablesAsync(financialRecord, _excelExporter, requestDB);
@@ -255,7 +264,10 @@ namespace WriteBalance.Application.Handlers
             (var CompanyId, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTime, endTime);
+            (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
             excelStream = await _balanceGenerator.GenerateTablesAsync(financialRecord, _excelExporter, requestDB);

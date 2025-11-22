@@ -73,6 +73,7 @@ class Program
                     services.AddHttpClient<IAuthService, AuthService>();
                     services.AddHttpClient<IApiService, ApiService>();
                     services.AddSingleton<IExcelExporter, ExcelExporter>();
+                    services.AddScoped<ICheckInput, CheckInput>();
                     services.AddSingleton<IBalanceGenerator, BalanceGenerator>();
                     services.AddScoped<IFinancialRepository, FinancialRepository>();
                     services.AddScoped<IPeriodRepository, PeriodRepository>();
@@ -99,7 +100,6 @@ class Program
 
                     services.AddScoped<WriteBalanceHandler>();
                     services.AddScoped<BalanceController>();
-                    services.AddSingleton<CheckInput>();
                     services.AddSingleton<Logger>();
 
                 })

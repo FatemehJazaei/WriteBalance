@@ -28,6 +28,10 @@ for excel_path in excel_files:
         dtype={
             "Kol_Code": str,
             "Moeen_Code": str,
+            "Gardersh_Bed":float,
+            "Gardersh_Bes":float,
+            "Mande_Bed":float,
+            "Mande_Bes":float,
         }
     )
 
@@ -48,10 +52,10 @@ for excel_path in excel_files:
             "Tafzil_Code": types.NVARCHAR(length=255),
             "Tafzil_Tilte": types.NVARCHAR(length=255),
             "FinApplication_Title": types.NVARCHAR(length=255),
-            "Gardersh_Bed":types.DECIMAL,
-            "Gardersh_Bes":types.DECIMAL,
-            "Mande_Bed":types.DECIMAL,
-            "Mande_Bes":types.DECIMAL,
+            "Gardersh_Bed":types.DECIMAL(38,0),
+            "Gardersh_Bes":types.DECIMAL(38,0),
+            "Mande_Bed":types.DECIMAL(38,0),
+            "Mande_Bes":types.DECIMAL(38,0),
         },
     )
 

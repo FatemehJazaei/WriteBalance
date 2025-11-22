@@ -66,9 +66,9 @@ namespace WriteBalance.Infrastructure.Services
                 config["tarazType"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";
-                config["BalanceName"] = "BalanceTest1";
-                config["FromDateDB"] = "14040101";
-                config["ToDateDB"] = "14041230";
+                config["BalanceName"] = "BalanceTest5";
+                config["FromDateDB"] = "";
+                config["ToDateDB"] = "14040203";
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
                 filePath = Path.GetFullPath(filePath);

@@ -10,14 +10,15 @@ using WriteBalance.Application.Handlers;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Infrastructure.Services;
 using WriteBalance.Common.Logging;
+using WriteBalance.Application.Interfaces;
 
 namespace WriteBalanceConsoleApp
 {
     public class BalanceController
     {
         private readonly WriteBalanceHandler _writeBalanceHandler;
-        private readonly CheckInput _checkInput;
-        public BalanceController( WriteBalanceHandler writeBalanceHandler, CheckInput checkInput) 
+        private readonly ICheckInput _checkInput;
+        public BalanceController( WriteBalanceHandler writeBalanceHandler, ICheckInput checkInput) 
         {
             _writeBalanceHandler = writeBalanceHandler; 
             _checkInput = checkInput;
@@ -29,7 +30,7 @@ namespace WriteBalanceConsoleApp
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
 
-                var InputValid = await _checkInput.CheckUserInput(config);
+                var InputValid = _checkInput.CheckUserInput(config);
 
                 string folderName = config["of"];
                 string path = config["op"];
@@ -54,11 +55,6 @@ namespace WriteBalanceConsoleApp
                     FolderPath = folderPath,
                     FileName = "",
                 };
-
-                if(!int.TryParse(config["ToDateDB"], out var number) || !int.TryParse(config["FromDateDB"], out var number1)){
-                    config["ToDateDB"] = "";
-                    config["FromDateDB"] = "";
-                }
 
 
                 var requestDB = new DBRequestDto
