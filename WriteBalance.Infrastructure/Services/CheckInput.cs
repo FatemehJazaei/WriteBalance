@@ -54,7 +54,7 @@ namespace WriteBalance.Infrastructure.Services
                        new ConnectionMessage
                        {
                            MessageType = MessageType.Error,
-                           Messages = new List<string> { $"  تاریخ پایان نامعتبر " }
+                           Messages = new List<string> { $" تاریخ شروع نمیتواند از تاریخ پایان بزرگتر باشد. " }
                        },
                    requestDB.FolderPath
                    );
@@ -64,13 +64,13 @@ namespace WriteBalance.Infrastructure.Services
                 if (int.Parse(requestDB.ToDateDB) < int.Parse(requestDB.FromDateDB) || int.Parse(endFinancialPeriod) < int.Parse(startFinancialPeriod))
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"Date is invalid. (FromDateDB {requestDB.FromDateDB} , ToDateDB {requestDB.ToDateDB}) "), $"CheckDateInput--typeReport:Error");
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"Date is invalid. (FromDateDB {startFinancialPeriod} , ToDateDB {endFinancialPeriod}) "), $"CheckDateInput--typeReport:Error");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Date is invalid. (startFinancialPeriod {startFinancialPeriod} , endFinancialPeriod {endFinancialPeriod}) "), $"CheckDateInput--typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $" ورودی نامعتبر " }
+                            Messages = new List<string> { $" تاریخ ورودی نامعتبر " }
                         },
                     requestDB.FolderPath
                     );
@@ -81,13 +81,13 @@ namespace WriteBalance.Infrastructure.Services
 
                     Logger.WriteEntry(JsonConvert.SerializeObject("Date is invalid. FromDateDB or ToDateDB is not in Financial Period Range!"), $"CheckDateInput--typeReport:Error");
                     Logger.WriteEntry(JsonConvert.SerializeObject($"Date is invalid. (FromDateDB {requestDB.FromDateDB} , ToDateDB {requestDB.ToDateDB}) "), $"CheckDateInput--typeReport:Error");
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"Date is invalid. (FromDateDB {startFinancialPeriod} , ToDateDB {endFinancialPeriod}) "), $"CheckDateInput--typeReport:Error");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Date is invalid. (startFinancialPeriod {startFinancialPeriod} , endFinancialPeriod {endFinancialPeriod}) "), $"CheckDateInput--typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $" ورودی نامعتبر " }
+                            Messages = new List<string> { $" تاریخ ورودی در بازه دوره مالی قرار ندارد. " }
                         },
                     requestDB.FolderPath
                     );

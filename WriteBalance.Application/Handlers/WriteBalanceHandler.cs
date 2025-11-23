@@ -78,7 +78,7 @@ namespace WriteBalance.Application.Handlers
                     catch(ConnectionMessageException ex)
                     {
                         resultSama = false;
-                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => m + " خطا در سما "));
+                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در سما : " + m ));
                     }
                     try
                     {
@@ -89,7 +89,7 @@ namespace WriteBalance.Application.Handlers
                     catch (ConnectionMessageException ex)
                     {
                         resultHamrah = false;
-                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => m + " خطا در همراه "));
+                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در همراه :" + m ));
                     }
                     try
                     {
@@ -100,7 +100,7 @@ namespace WriteBalance.Application.Handlers
                     catch (ConnectionMessageException ex)
                     {
                         resultKarbordi = false;
-                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => m + " خطا در کاربردی "));
+                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در کاربردی :" + m ));
                     }
                     try 
                     {
@@ -111,7 +111,7 @@ namespace WriteBalance.Application.Handlers
                     catch (ConnectionMessageException ex)
                     {
                         resultRayan = false;
-                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => m + " خطا در رایان "));
+                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در رایان :" + m ));
                     }
 
                     if (resultSama && resultHamrah && resultKarbordi && resultRayan) 
