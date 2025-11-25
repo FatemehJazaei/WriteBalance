@@ -80,12 +80,10 @@ namespace WriteBalanceConsoleApp
 
                 if (result)
                 {
-                    Console.ForegroundColor = ConsoleColor.Green;
                     Environment.ExitCode = 0;
                 }
                 else 
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
                     Logger.WriteEntry(JsonConvert.SerializeObject("Unhandled exception occurred in BalanceController - 604"), $"BalanceController--typeReport:Error");
                     Environment.ExitCode = 604;
                 }
@@ -94,7 +92,6 @@ namespace WriteBalanceConsoleApp
             catch (ConnectionMessageException ex)
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($"Unhandled exception occurred in BalanceController : {ex.Message}"), $"BalanceController--typeReport:Debug");
-                Console.ForegroundColor = ConsoleColor.Red;
 
                 File.WriteAllText($"{ex.FolderPath}/Messages.txt", JsonConvert.SerializeObject(ex.ConnectionMessage));
                 Environment.ExitCode = -1;

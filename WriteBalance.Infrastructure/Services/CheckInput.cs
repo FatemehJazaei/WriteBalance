@@ -54,7 +54,7 @@ namespace WriteBalance.Infrastructure.Services
                        new ConnectionMessage
                        {
                            MessageType = MessageType.Error,
-                           Messages = new List<string> { $" تاریخ شروع نمیتواند از تاریخ پایان بزرگتر باشد. " }
+                           Messages = new List<string> { $"تاریخ پایان نامعتبر " }
                        },
                    requestDB.FolderPath
                    );
@@ -70,13 +70,13 @@ namespace WriteBalance.Infrastructure.Services
                         new ConnectionMessage
                         {
                             MessageType = MessageType.Error,
-                            Messages = new List<string> { $" تاریخ ورودی نامعتبر " }
+                            Messages = new List<string> { $" تاریخ شروع نمیتواند از تاریخ پایان بزرگتر باشد. " }
                         },
                     requestDB.FolderPath
                     );
                 }
 
-                if (int.Parse(startFinancialPeriod) < int.Parse(requestDB.FromDateDB) || int.Parse(requestDB.ToDateDB) < int.Parse(endFinancialPeriod))
+                if (int.Parse(requestDB.FromDateDB) < int.Parse(startFinancialPeriod) || int.Parse(endFinancialPeriod) < int.Parse(requestDB.ToDateDB))
                 {
 
                     Logger.WriteEntry(JsonConvert.SerializeObject("Date is invalid. FromDateDB or ToDateDB is not in Financial Period Range!"), $"CheckDateInput--typeReport:Error");

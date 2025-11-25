@@ -102,6 +102,20 @@ namespace WriteBalance.Infrastructure.Repositories
                                     requestDB.OrginalClientAddressDB
                                 )
                                 .ToList();
+
+                    if (result == null || result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+
                     return result;
                 }
                 else
@@ -122,13 +136,29 @@ namespace WriteBalance.Infrastructure.Repositories
                                 )
                                 .ToList();
 
-
+                    if (result == null || result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
 
                     return result;
                 }
 
             }
-            catch( Exception ex ) 
+            catch (ConnectionMessageException ex)
+            {
+                throw;
+
+            }
+            catch ( Exception ex ) 
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                 Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecuteSPList --typeReport:Error");
@@ -215,29 +245,60 @@ namespace WriteBalance.Infrastructure.Repositories
                         requestDB.ToVoucherNum
                     )
                     .ToList();
+
+                    if (result == null || result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+
                     return result;
                 }
                 else
                 {
                     var result = _rayanContext.RayanFinancialBalance
-                .FromSqlRaw(
-                @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
-		                                    @FromDate = {0}, 
-		                                    @ToDate = {1},
-		                                    @FromVoucherNum = {2},
-		                                    @ToVoucherNum = {3}",
-                int.Parse(startTimePersian),
-                int.Parse(endTimePersian),
-                 //requestDB.FromVoucherNum,
-                 //requestDB.ToVoucherNum
-                 DBNull.Value,
-                 DBNull.Value
-            )
-            .ToList();
+                                .FromSqlRaw(
+                                @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
+		                                                    @FromDate = {0}, 
+		                                                    @ToDate = {1},
+		                                                    @FromVoucherNum = {2},
+		                                                    @ToVoucherNum = {3}",
+                                int.Parse(startTimePersian),
+                                int.Parse(endTimePersian),
+                                 //requestDB.FromVoucherNum,
+                                 //requestDB.ToVoucherNum
+                                 DBNull.Value,
+                                 DBNull.Value
+                            )
+                            .ToList();
 
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"rayan list count:{result.Count}"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Info");
+                    if (result == null || result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+
                     return result;
                 }
+
+            }
+            catch (ConnectionMessageException ex)
+            {
+                throw;
 
             }
             catch ( Exception ex )
@@ -319,6 +380,21 @@ namespace WriteBalance.Infrastructure.Repositories
                     requestDB.OrginalClientAddressDB
                 )
                 .ToList();
+
+                    if (result == null || result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+
+
                     return result;
                 }
                 else
@@ -339,11 +415,29 @@ namespace WriteBalance.Infrastructure.Repositories
                     )
                     .ToList();
 
+                    if (result == null || result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+
                     return result;
                 }
 
             }
-            catch( Exception ex )
+            catch (ConnectionMessageException ex)
+            {
+                throw;
+
+            }
+            catch ( Exception ex )
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                 Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
