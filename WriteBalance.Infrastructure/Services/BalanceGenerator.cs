@@ -550,7 +550,7 @@ namespace WriteBalance.Infrastructure.Services
                 var rows = RayanFinancialRecord.Select(x =>
                 {
 
-                    var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code}";
+                    var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code[^4..]}";
                     var title = $"{x.Kol_Title}_{x.Moeen_Title}_{x.Tafsili_Title}";
 
                     if (x.joze1_Code.Length == 17)
@@ -558,10 +558,10 @@ namespace WriteBalance.Infrastructure.Services
                         code += $"_{x.joze1_Code[^6..]}";
                         title += $"_{x.joze1_Title}";
 
-                        if (x.joze1_Code.Length == 21)
+                        if (x.joze2_Code.Length == 21)
                         {
-                            code += $"_{x.joze1_Code[^4..]}";
-                            title += $"_{x.joze1_Title}";
+                            code += $"_{x.joze2_Code[^4..]}";
+                            title += $"_{x.joze2_Title}";
                         }
                     }
 
