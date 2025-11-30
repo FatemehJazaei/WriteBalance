@@ -119,6 +119,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
                 int row = 2;
+                int writeValue = 0;
 
                 foreach (var item in mergedRows)
                 {
@@ -139,10 +140,24 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReport.Cell(row, 4).Value = item.Col4; ;
 
                         row++;
+                        writeValue++;
                     }
 
                 }
 
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
@@ -254,6 +269,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.Cell(row, 10).Value = "مانده بدهکار";
                 worksheet.Cell(row, 11).Value = "مانده بستانکار";
                 row = 2;
+                int writeValue = 0;
 
                 foreach (var item in financialRecords)
                 {
@@ -275,10 +291,24 @@ namespace WriteBalance.Infrastructure.Services
                         worksheet.Cell(row, 10).Value = item.Mande_Bed;
                         worksheet.Cell(row, 11).Value = item.Mande_Bes;
                         row++;
+
+                        writeValue++;
                     }
                 }
 
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
 
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
 
                 worksheet.Style.Font.FontName = "B Nazanin";
                 worksheet.Style.Font.FontSize = 11;
@@ -425,6 +455,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
                 int row = 2;
+                int writeValue = 0;
 
                 foreach (var item in mergedRows)
                 {
@@ -445,10 +476,23 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReport.Cell(row, 4).Value = item.Col4; ;
 
                         row++;
+                        writeValue++;
                     }
                 }
 
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
 
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
 
 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
@@ -610,6 +654,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
                 int row = 2;
+                int writeValue = 0;
 
                 foreach (var item in mergedRows)
                 {
@@ -630,10 +675,23 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReport.Cell(row, 4).Value = item.Col4;
 
                         row++;
+                        writeValue++;
                     }
                 }
 
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
 
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
@@ -714,6 +772,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.Cell(row, 22).Value = "مانده بستانکار";
 
                 row = 2;
+                int writeValue = 0;
 
                 foreach (var item in financialRecords)
                 {
@@ -746,7 +805,23 @@ namespace WriteBalance.Infrastructure.Services
                         worksheet.Cell(row, 21).Value = item.Mande_Bed;
                         worksheet.Cell(row, 22).Value = item.Mande_Bes;
                         row++;
+
+                        writeValue++;
                     }
+                }
+
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
                 }
 
                 worksheet.Style.Font.FontName = "B Nazanin";
