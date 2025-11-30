@@ -558,11 +558,21 @@ namespace WriteBalance.Infrastructure.Services
                         code += $"_{x.joze1_Code[^6..]}";
                         title += $"_{x.joze1_Title}";
 
-                        if (x.joze2_Code.Length == 21)
-                        {
-                            code += $"_{x.joze2_Code[^4..]}";
-                            title += $"_{x.joze2_Title}";
-                        }
+
+                    }
+                    else
+                    {
+                        code += $"_0";
+                    }
+
+                    if (x.joze2_Code.Length == 21)
+                    {
+                        code += $"_{x.joze2_Code[^4..]}";
+                        title += $"_{x.joze2_Title}";
+                    }
+                    else
+                    {
+                        code += $"_0";
                     }
 
                     return new ExcelRow

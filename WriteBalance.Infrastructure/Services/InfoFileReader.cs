@@ -57,6 +57,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["ToVoucherNum"] = "";
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
+
                 /*
                 config["AddressServerBank"] = "Exir-203";
                 config["DataBaseNameBank"] = "Database1";
@@ -66,9 +67,9 @@ namespace WriteBalance.Infrastructure.Services
                 config["tarazType"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";
-                config["BalanceName"] = "BalanceTest6";
-                config["FromDateDB"] = "14040204";
-                config["ToDateDB"] = "14040404";
+                config["BalanceName"] = "BalanceTest7";
+                config["FromDateDB"] = "14040104";
+                config["ToDateDB"] = "14040424";
                 */
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
                 filePath = Path.GetFullPath(filePath);
