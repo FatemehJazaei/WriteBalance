@@ -15,6 +15,7 @@ namespace WriteBalance.Application.DTOs
         public string BaseUrl { get; set; }
         public string BalanceName { get; set; }
         public string FileName { get; set; }
+        public string FileNameArzi { get; set; }
         public string FolderPath { get; set; }
 
     }

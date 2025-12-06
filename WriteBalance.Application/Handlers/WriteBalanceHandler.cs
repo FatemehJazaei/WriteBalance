@@ -67,6 +67,7 @@ namespace WriteBalance.Application.Handlers
                     var resultSama = false;
                     var resultKarbordi = false;
                     var resultRayan = false;
+                    var resultPouya = false;
                     var errors = new List<string>();
 
                     try
@@ -113,15 +114,25 @@ namespace WriteBalance.Application.Handlers
                         resultRayan = false;
                         errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در رایان :" + m ));
                     }
-
-                    if (resultSama && resultHamrah && resultKarbordi && resultRayan) 
+                    try
+                    {
+                        requestDB.TarazType = "5";
+                        request.BalanceName = UserInterBalanceName + " پویا";
+                        resultPouya = await Handle_Poya_Async(request, requestDB);
+                    }
+                    catch (ConnectionMessageException ex)
+                    {
+                        resultRayan = false;
+                        errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در رایان :" + m));
+                    }
+                    if (resultSama && resultHamrah && resultKarbordi && resultRayan && resultPouya) 
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject("All results is true!"), $"WriteBalanceHandler: HandleAsync--typeReport:Info");
                         return await Task.FromResult(true);
                     }
                     else
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"resultSama: {resultSama}, resultHamrah: {resultHamrah}, resultKarbordi: {resultKarbordi}, resultRayan: {resultRayan},"), $"WriteBalanceHandler: HandleAsync--typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"resultSama: {resultSama}, resultHamrah: {resultHamrah}, resultKarbordi: {resultKarbordi}, resultRayan: {resultRayan},  resultPouya: {resultPouya}"), $"WriteBalanceHandler: HandleAsync--typeReport:Error");
                         throw new ConnectionMessageException(new ConnectionMessage
                             {
                                 MessageType = MessageType.Error,
@@ -130,10 +141,6 @@ namespace WriteBalance.Application.Handlers
                             request.FolderPath
                             );
                     }
-
-                    // request.BalanceName = UserInterBalanceName + " پویا";
-                    // var resultPoya = await Handle_Poya_Async(request, requestDB);
-                    //return await Task.FromResult(resultPoya);
 
                 }
                 else if (requestDB.TarazType == "1" || requestDB.TarazType == "3" || requestDB.TarazType == "4")
@@ -228,11 +235,8 @@ namespace WriteBalance.Application.Handlers
             var financialRecord = _financialRepository.ExecutePoyaSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecutePoyaSPList done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
-            excelStream = await _balanceGenerator.GeneratePoyaTablesAsync(financialRecord, _excelExporter, requestDB);
+            await _balanceGenerator.GeneratePoyaTablesAsync(financialRecord, _excelExporter, requestDB);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GeneratePoyaTablesAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
-
-            await _excelExporter.SaveUploadAsync(excelStream, request.FolderPath, request.FileName);
-            Logger.WriteEntry(JsonConvert.SerializeObject($"SaveUploadAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             if (requestDB.PrintOrReport == "1")
             {

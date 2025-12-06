@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Azure;
+using Azure.Core;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -356,7 +358,7 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
-        public async Task<MemoryStream> GeneratePoyaTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB)
+        public async Task GeneratePoyaTablesAsync(List<PouyaFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB)
         {
             try
             {
@@ -364,19 +366,200 @@ namespace WriteBalance.Infrastructure.Services
 
                 var workbookReport = excelExporter.GetWorkbookReport();
                 var workbookUpload = excelExporter.GetWorkbookUpload();
-                var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
+                var workbookUploadArzi = excelExporter.GetWorkbookUploadArzi();
+                var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
-                var rows = financialRecords.Select(x => new ExcelRow
+                var rowsRial = financialRecords.Select(x => new ExcelRow
                 {
-                    Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
-                    Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
-                    Col3 = x.Mande_Bed,
-                    Col4 = x.Mande_Bes,
+                    Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
+                    Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
+                    Col3 = x.Mande_Bed_rial,
+                    Col4 = x.Mande_Bes_rial,
                 }).ToList();
 
-                var mergedRows = MergeDuplicateRows(rows);
+                var mergedRows = MergeDuplicateRows(rowsRial);
+                mergedRows = await checkBalance(mergedRows, excelExporter, requestDB, streamReport);
 
+                var worksheetUpload = workbookUpload.Worksheets.Add("Data");
+                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر ریالی");
+                worksheetUpload.RightToLeft = true;
+                worksheetReport.RightToLeft = true;
+                int row = 2;
+                int writeValue = 0;
+
+                foreach (var item in mergedRows)
+                {
+                    if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        worksheetUpload.Cell(row, 1).Value = item.Col1;
+                        worksheetUpload.Cell(row, 2).Value = item.Col2;
+                        worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
+                        worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
+
+                        worksheetReport.Cell(row, 1).Value = item.Col1;
+                        worksheetReport.Cell(row, 2).Value = item.Col2;
+                        worksheetReport.Cell(row, 3).Value = item.Col3;
+                        worksheetReport.Cell(row, 4).Value = item.Col4; ;
+
+                        row++;
+                        writeValue++;
+                    }
+                }
+
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+
+                worksheetReport.Style.Font.FontName = "B Nazanin";
+                worksheetReport.Style.Font.FontSize = 11;
+
+                var range = worksheetReport.Range("L:O");
+                range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
+
+                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReport.Column("C").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReport.Column("K").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                var usedRange = worksheetReport.RangeUsed();
+
+                if (usedRange != null)
+                {
+                    worksheetReport.Columns().AdjustToContents();
+                    usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                var headerRange = worksheetReport.Range("A1:O1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+
+                var streamUpload = new MemoryStream();
+                workbookUpload.SaveAs(streamUpload);
+                streamUpload.Position = 0;
+                await excelExporter.SaveUploadAsync(streamUpload, requestDB.FolderPath, requestDB.FileNameRial);
+
+                var rowsArzi = financialRecords.Select(x => new ExcelRow
+                {
+                    Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
+                    Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
+                    Col3 = x.Mande_Bed_arzi,
+                    Col4 = x.Mande_Bes_arzi,
+                }).ToList();
+
+
+                var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");
+                var worksheetReportArzi = workbookReport.Worksheets.Add("تراز اکسیر ارزی");
+                worksheetUploadArzi.RightToLeft = true;
+                worksheetUploadArzi.RightToLeft = true;
+                row = 2;
+                writeValue = 0;
+
+                foreach (var item in mergedRows)
+                {
+                    if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        worksheetUploadArzi.Cell(row, 1).Value = item.Col1;
+                        worksheetUploadArzi.Cell(row, 2).Value = item.Col2;
+                        worksheetUploadArzi.Cell(row, 3).Value = item.Col3.ToString();
+                        worksheetUploadArzi.Cell(row, 4).Value = item.Col4.ToString();
+
+                        worksheetReportArzi.Cell(row, 1).Value = item.Col1;
+                        worksheetReportArzi.Cell(row, 2).Value = item.Col2;
+                        worksheetReportArzi.Cell(row, 3).Value = item.Col3;
+                        worksheetReportArzi.Cell(row, 4).Value = item.Col4; ;
+
+                        row++;
+                        writeValue++;
+                    }
+                }
+
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+
+                worksheetReportArzi.Style.Font.FontName = "B Nazanin";
+                worksheetReportArzi.Style.Font.FontSize = 11;
+
+                range = worksheetReportArzi.Range("L:O");
+                range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
+
+                worksheetReportArzi.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReportArzi.Column("C").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheetReportArzi.Column("K").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                usedRange = worksheetReportArzi.RangeUsed();
+
+                if (usedRange != null)
+                {
+                    worksheetReportArzi.Columns().AdjustToContents();
+                    usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                headerRange = worksheetReportArzi.Range("A1:O1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+                await excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
+
+                var streamUploadArzi = new MemoryStream();
+                workbookUploadArzi.SaveAs(streamUploadArzi);
+                streamUploadArzi.Position = 0;
+                await excelExporter.SaveUploadAsync(streamUploadArzi, requestDB.FolderPath, requestDB.FileNameArzi);
+
+            }
+            catch (ConnectionMessageException ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("GeneratePoyaTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
+                throw;
+            }
+        }
+
+        public async Task<List<ExcelRow>> checkBalance(List<ExcelRow> mergedRows, IExcelExporter excelExporter, DBRequestDto requestDB, MemoryStream streamReport)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("checkBalance Starting!"), $"BalanceGenerator:checkBalance --typeReport:Info");
                 var duplicateKeys = mergedRows
                                     .GroupBy(r => r.Col1)
                                     .Where(g => g.Count() > 1)
@@ -447,42 +630,89 @@ namespace WriteBalance.Infrastructure.Services
                             });
                         }
                     }
-
                 }
+                return await Task.FromResult(mergedRows); 
+            }
+            catch (ConnectionMessageException ex) {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:checkBalance --typeReport:Error");
+                throw;
+            }
+        }
+        public async Task<MemoryStream> GenerateRawPouyaTablesAsync(List<PouyaFinancialRecord> financialRecords, IExcelExporter excelExporter, XLWorkbook workbook, DBRequestDto requestDB)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRawPouyaTablesAsync"), $"BalanceGenerator:GenerateRawPouyaTablesAsync --typeReport:Info");
+                var worksheet = workbook.Worksheets.Add("تراز خام");
+                worksheet.RightToLeft = true;
+                int row = 1;
 
-                var worksheetUpload = workbookUpload.Worksheets.Add("Data");
-                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
-                worksheetUpload.RightToLeft = true;
-                worksheetReport.RightToLeft = true;
-                int row = 2;
+                worksheet.Cell(row, 1).Value = "تاریخ انتهای بازه گزارش گیری";
+                worksheet.Cell(row, 2).Value = "کد شعبه";
+                worksheet.Cell(row, 3).Value = "کد کل از دید بانک مرکزی ";
+                worksheet.Cell(row, 4).Value = "عنوان کد کل";
+                worksheet.Cell(row, 5).Value = "کد حساب";
+                worksheet.Cell(row, 6).Value = "سرفصل کل";
+                worksheet.Cell(row, 7).Value = "کد ارز";
+                worksheet.Cell(row, 8).Value = "گروه معین";
+                worksheet.Cell(row, 9).Value = "معین";
+                worksheet.Cell(row, 10).Value = "تفضیلی";
+                worksheet.Cell(row, 11).Value = "کد اختصاری ارز";
+                worksheet.Cell(row, 12).Value = "شرح ارز";
+                worksheet.Cell(row, 13).Value = "مانده بدهکار ارزی";
+                worksheet.Cell(row, 14).Value = "مانده بستانکار ارزی";
+                worksheet.Cell(row, 15).Value = "مانده بدهکار ریالی";
+                worksheet.Cell(row, 16).Value = "مانده بستانکار ریالی";
+                worksheet.Cell(row, 17).Value = "گردش بدهکار ریالی";
+                worksheet.Cell(row, 18).Value = "گردش بستانکار ریالی";
+                worksheet.Cell(row, 19).Value = "گردش بدهکاری ارزی";
+                worksheet.Cell(row, 20).Value = "گردش بستانکار ارزی";
+
+                row = 2;
                 int writeValue = 0;
 
-                foreach (var item in mergedRows)
+                foreach (var item in financialRecords)
                 {
-                    if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
+                    if (requestDB.AllOrHasMandeh == "2" && item.Mande_Bed_arzi - item.Mande_Bes_arzi == 0)
                     {
                         continue;
                     }
                     else
                     {
-                        worksheetUpload.Cell(row, 1).Value = item.Col1;
-                        worksheetUpload.Cell(row, 2).Value = item.Col2;
-                        worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
-                        worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
-
-                        worksheetReport.Cell(row, 1).Value = item.Col1;
-                        worksheetReport.Cell(row, 2).Value = item.Col2;
-                        worksheetReport.Cell(row, 3).Value = item.Col3;
-                        worksheetReport.Cell(row, 4).Value = item.Col4; ;
+                        worksheet.Cell(row, 1).Value = item.Taraz_Date;
+                        worksheet.Cell(row, 2).Value = item.Code_shobeh;
+                        worksheet.Cell(row, 3).Value = item.Kol_Code_Markazi;
+                        worksheet.Cell(row, 4).Value = item.Kol_Title;
+                        worksheet.Cell(row, 5).Value = item.Hesab_Code;
+                        worksheet.Cell(row, 6).Value = item.Kol_Code;
+                        worksheet.Cell(row, 7).Value = item.Arz_Code;
+                        worksheet.Cell(row, 8).Value = item.Moeen_Code;
+                        worksheet.Cell(row, 9).Value = item.Moeen;
+                        worksheet.Cell(row, 10).Value = item.Tafzili;
+                        worksheet.Cell(row, 11).Value = item.Code_Arz_Abbr;
+                        worksheet.Cell(row, 12).Value = item.Sharh_Arz;
+                        worksheet.Cell(row, 13).Value = item.Mande_Bed_arzi;
+                        worksheet.Cell(row, 14).Value = item.Mande_Bes_arzi;
+                        worksheet.Cell(row, 15).Value = item.Mande_Bed_rial;
+                        worksheet.Cell(row, 16).Value = item.Mande_Bes_rial;
+                        worksheet.Cell(row, 17).Value = item.Gardersh_Bed_rial;
+                        worksheet.Cell(row, 18).Value = item.Gardersh_Bes_rial;
+                        worksheet.Cell(row, 19).Value = item.Gardersh_Bed_arzi;
+                        worksheet.Cell(row, 20).Value = item.Gardersh_Bes_arzi;
 
                         row++;
+
                         writeValue++;
                     }
                 }
 
                 if (writeValue == 0)
                 {
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GenerateRawPouyaTablesAsync --typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage
@@ -494,45 +724,48 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                worksheet.Style.Font.FontName = "B Nazanin";
+                worksheet.Style.Font.FontSize = 11;
 
-                worksheetReport.Style.Font.FontName = "B Nazanin";
-                worksheetReport.Style.Font.FontSize = 11;
-
-                var range = worksheetReport.Range("H:K");
+                var range = worksheet.Range("M:T");
                 range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
 
-                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                worksheetReport.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                worksheetReport.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheet.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("L").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                var usedRange = worksheetReport.RangeUsed();
+                var usedRange = worksheet.RangeUsed();
 
                 if (usedRange != null)
                 {
-                    worksheetReport.Columns().AdjustToContents();
+                    worksheet.Columns().AdjustToContents();
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
 
-                var headerRange = worksheetReport.Range("A1:k1");
+                var headerRange = worksheet.Range("A1:T1");
                 headerRange.Style.Font.Bold = true;
                 headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
 
-                workbookReport.SaveAs(streamReport);
-                streamReport.Position = 0;
-                excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
-
-                var streamUpload = new MemoryStream();
-                workbookUpload.SaveAs(streamUpload);
-                streamUpload.Position = 0;
-                return await Task.FromResult(streamUpload);
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+                return await Task.FromResult(stream);
             }
-            catch (ConnectionMessageException ex)
+            catch (Exception ex)
             {
-                Logger.WriteEntry(JsonConvert.SerializeObject("GeneratePoyaTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
-                throw;
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:GenerateRawPouyaTablesAsync --typeReport:Error");
+
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { "خطا در تولید تراز خام" }
+                    },
+                requestDB.FolderPath
+                );
             }
         }
 

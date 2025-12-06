@@ -21,15 +21,17 @@ namespace WriteBalance.Infrastructure.Repositories
     {
         private readonly BankDbContext _context;
         private readonly RayanBankDbContext _rayanContext;
+        private readonly PouyaBankDbContext _pouyaContext;
         private readonly ICheckInput _checkInput;
         private readonly bool _IsTest;
 
-        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, ICheckInput checkInput)
+        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, PouyaBankDbContext pouyaContext, ICheckInput checkInput)
         {
             _context = context;
             _rayanContext = rayanContext;
             _checkInput = checkInput;
-            _IsTest = false;
+            _pouyaContext = pouyaContext;
+            _IsTest = true;
         }
 
         public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
@@ -193,7 +195,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
             if (_rayanContext == null)
             {
-                Logger.WriteEntry(JsonConvert.SerializeObject($"context is null"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_rayanContext is null"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
@@ -318,30 +320,28 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<FinancialRecord> ExecutePoyaSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
+        public List<PouyaFinancialRecord> ExecutePoyaSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {
-            Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecutePoyaSPList "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
-
+            Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecutePoyaSPList."), $"FinancialRepository:ExecutePoyaSPList--typeReport:Info");
             var tarazName = "پویا";
-            requestDB.TarazType = "5";
 
-            if (_context == null)
+            if (_pouyaContext == null)
             {
-                Logger.WriteEntry(JsonConvert.SerializeObject($"context is null"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_pouyaContext is null"), $"FinancialRepository:ExecutePoyaSPList--typeReport:Error");
                 throw new ConnectionMessageException(
-                        new ConnectionMessage
-                        {
-                            MessageType = MessageType.Error,
-                            Messages = new List<string> { $" {tarazName} خطا در ارتباط با پایگاه داده" }
-                        },
-                        requestDB.FolderPath
-                    );
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $" {tarazName} خطا در ارتباط با پایگاه داده" }
+                    },
+                    requestDB.FolderPath
+                );
             }
 
 
-            if (_context.FinancialRecord == null)
+            if (_pouyaContext.PouyaFinancialBalance == null)
             {
-                Logger.WriteEntry(JsonConvert.SerializeObject($"context.FinancialRecord is null"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_pouyaContext.PouyaFinancialBalance is null"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                 throw new ConnectionMessageException(
                     new ConnectionMessage
                     {
@@ -350,40 +350,38 @@ namespace WriteBalance.Infrastructure.Repositories
                     },
                     requestDB.FolderPath
                 );
-
             }
 
             try
             {
+                _pouyaContext.Database.SetCommandTimeout(300);
 
                 var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
-                requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
-                request.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+                requestDB.FileName = $"تراز  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+                requestDB.FileNameRial = $"تراز ریالی  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+                requestDB.FileNameArzi = $"تراز ارزی   {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
 
-                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
-                _context.Database.SetCommandTimeout(300);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
 
-                if (_IsTest) 
+                if (_IsTest)
                 {
-                    var result = _context.FinancialRecord
-                .FromSqlRaw(
-                    @"EXEC dbo.MainProc 
-                                        @username = {0}, 
-                                        @ptoken = {1}, 
-                                        @objecttoken = {2}, 
-                                        @parameterslist = {3}, 
-                                        @OrginalClientAddress = {4}",
-                    requestDB.UserNameDB,
-                    requestDB.PtokenDB,
-                    requestDB.ObjecttokenDB,
-                   $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
-                    requestDB.OrginalClientAddressDB
-                )
-                .ToList();
+                    var result = _pouyaContext.PouyaFinancialBalance
+                                .FromSqlRaw(
+                                    @"EXEC dbo.usp_in5GetArziBalance
+                                        @intBalkd  = {0}, 
+                                        @intRptKd ={1}, 
+                                        @fromDate = {2},
+                                        @ToDate  ={3}",
+                                    requestDB.TarazTypePouya,
+                                    3,
+                                    $"{startTimePersian}",
+                                   $"{endTimePersian}"
+                                )
+                                .ToList();
 
                     if (result == null || result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -394,30 +392,27 @@ namespace WriteBalance.Infrastructure.Repositories
                         );
                     }
 
-
                     return result;
                 }
                 else
                 {
-                    var result = _context.FinancialRecord
-                        .FromSqlRaw(
-                            @"EXEC [10.15.43.83].DWProxyDB.dbo.MainProc
-                            @username = {0}, 
-                            @ptoken = {1}, 
-                            @objecttoken = {2}, 
-                            @parameterslist = {3}, 
-                            @OrginalClientAddress = {4}",
-                        requestDB.UserNameDB,
-                        requestDB.PtokenDB,
-                        requestDB.ObjecttokenDB,
-                       $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
-                        requestDB.OrginalClientAddressDB
-                    )
-                    .ToList();
+                    var result = _pouyaContext.PouyaFinancialBalance
+                                .FromSqlRaw(
+                                    @"EXEC  [10.15.43.52].Arzi.dbo.usp_in5GetArziBalance
+                                        @intBalkd  = {0}, 
+                                        @intRptKd ={1}, 
+                                        @fromDate = {2},
+                                        @ToDate  ={3}",
+                                    requestDB.TarazTypePouya,
+                                    3,
+                                    $"{startTimePersian}",
+                                   $"{endTimePersian}"
+                                )
+                                .ToList();
 
                     if (result == null || result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -437,7 +432,7 @@ namespace WriteBalance.Infrastructure.Repositories
                 throw;
 
             }
-            catch ( Exception ex )
+            catch (Exception ex)
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                 Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
@@ -451,6 +446,14 @@ namespace WriteBalance.Infrastructure.Repositories
                 );
 
             }
+
+            /*
+            var result = _context.FinancialBalance
+                .FromSqlRaw(
+                    "EXEC dbo.MainProc"
+                )
+                .ToList();
+            */
         }
 
     }

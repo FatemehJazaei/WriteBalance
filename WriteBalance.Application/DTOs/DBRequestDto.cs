@@ -8,6 +8,7 @@
         public string FromDateDB { get; set; }
         public string ToDateDB { get; set; }
         public string TarazType { get; set; }
+        public string TarazTypePouya { get; set; }
         public string AllOrHasMandeh { get; set; }
         public string OrginalClientAddressDB { get; set; }
         public string FromVoucherNum { get; set; }
@@ -16,6 +17,8 @@
         public string OnlyVoucherNum { get; set; }
         public string PrintOrReport { get; set; }
         public string FileName { get; set; }
+        public string FileNameRial { get; set; }
+        public string FileNameArzi { get; set; }
         public string FolderPath { get; set; }
     }
 }

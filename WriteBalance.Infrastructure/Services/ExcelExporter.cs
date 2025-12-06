@@ -19,15 +19,18 @@ namespace WriteBalance.Infrastructure.Services
     {
         private readonly XLWorkbook _workbookUpload;
         private readonly XLWorkbook _workbookReport;
+        private readonly XLWorkbook _workbookUploadArzi;
 
         public ExcelExporter()
         {
             _workbookReport = new XLWorkbook();
             _workbookUpload = new XLWorkbook();
+            _workbookUploadArzi = new XLWorkbook();
         }
 
         public XLWorkbook GetWorkbookReport() => _workbookReport;
         public XLWorkbook GetWorkbookUpload()=> _workbookUpload ;
+        public XLWorkbook GetWorkbookUploadArzi() => _workbookUploadArzi;
         public Task<MemoryStream> CreateWorkbookAsync()
             => Task.FromResult(new MemoryStream());
 
@@ -57,7 +60,8 @@ namespace WriteBalance.Infrastructure.Services
                 if (_workbookReport != null)
                 {
                     _workbookReport.Worksheets.Delete("تراز خام");
-                    _workbookReport.Worksheets.Delete("تراز اکسیر");
+                    _workbookReport.Worksheets.Delete("تراز اکسیر ارزی");
+                    _workbookReport.Worksheets.Delete("تراز اکسیر ریالی");
                     _workbookReport.Dispose();   
                 }
             }
@@ -90,6 +94,38 @@ namespace WriteBalance.Infrastructure.Services
                 {
                     _workbookUpload.Worksheets.Delete("Data");
                     _workbookUpload.Dispose();  
+                }
+            }
+
+        }
+
+        public async Task SaveUploadArziAsync(MemoryStream stream, string path, string fileName)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SaveUploadArziAsync"), $"ExcelExporter: SaveUploadArziAsync --typeReport:Info");
+                string folderPath = Path.Combine(path, fileName);
+                _workbookUploadArzi.SaveAs(folderPath);
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveUploadArziAsync --typeReport:Error");
+                throw;
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.SetLength(0);
+                    stream.Position = 0;
+                    stream.Dispose();
+                }
+
+                if (_workbookUploadArzi != null)
+                {
+                    _workbookUploadArzi.Worksheets.Delete("Data");
+                    _workbookUploadArzi.Dispose();
                 }
             }
 

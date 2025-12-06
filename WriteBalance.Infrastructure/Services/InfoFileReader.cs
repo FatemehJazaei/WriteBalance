@@ -58,19 +58,20 @@ namespace WriteBalance.Infrastructure.Services
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
 
-                /*
+
                 config["AddressServerBank"] = "Exir-203";
-                config["DataBaseNameBank"] = "Database1";
+                config["DataBaseNameBank"] = "Refah";
                 config["op"] = "E:\\Projects";
                 config["of"] = "WriteBalance";
                 config["pi"] = "5046";
-                config["tarazType"] = "1";
+                config["tarazType"] = "5";
+                config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";
-                config["BalanceName"] = "BalanceTest7";
+                config["BalanceName"] = "BalanceTest8";
                 config["FromDateDB"] = "14040104";
                 config["ToDateDB"] = "14040424";
-                */
+
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
                 filePath = Path.GetFullPath(filePath);
 

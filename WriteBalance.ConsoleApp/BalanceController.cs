@@ -54,6 +54,7 @@ namespace WriteBalanceConsoleApp
                     BalanceName = config["BalanceName"],
                     FolderPath = folderPath,
                     FileName = "",
+                    FileNameArzi = "",
                 };
 
 
@@ -64,6 +65,7 @@ namespace WriteBalanceConsoleApp
                     ObjecttokenDB = config["objecttokenDB"],
                     OrginalClientAddressDB = config["OrginalClientAddressDB"],
                     TarazType = config["tarazType"],
+                    TarazTypePouya =  config["tarazTypePouya"],
                     AllOrHasMandeh = config["AllOrHasMandeh"],
                     FromDateDB = config["FromDateDB"],
                     ToDateDB = config["ToDateDB"],
@@ -74,6 +76,8 @@ namespace WriteBalanceConsoleApp
                     PrintOrReport = config["PrintOrReport"],
                     FolderPath = folderPath,
                     FileName = "",
+                    FileNameRial = "",
+                    FileNameArzi = "",
                 };
 
                 var result = await _writeBalanceHandler.HandleAsync(request, requestDB);

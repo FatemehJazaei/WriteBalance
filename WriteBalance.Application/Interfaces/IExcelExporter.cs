@@ -11,9 +11,11 @@ namespace WriteBalance.Application.Interfaces
     {
         XLWorkbook GetWorkbookReport();
         XLWorkbook GetWorkbookUpload();
+        XLWorkbook GetWorkbookUploadArzi();
         Task<MemoryStream> CreateWorkbookAsync();
 
         Task SaveReportAsync(MemoryStream stream, string path, string fileName);
         Task SaveUploadAsync(MemoryStream stream, string path, string fileName);
+        Task SaveUploadArziAsync(MemoryStream stream, string path, string fileName);
     }
 }
