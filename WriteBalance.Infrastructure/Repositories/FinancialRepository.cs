@@ -1,19 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using WriteBalance.Domain.Entities;
-using WriteBalance.Application.Interfaces;
-using WriteBalance.Infrastructure.Context;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using WriteBalance.Infrastructure.Services;
-using Newtonsoft.Json;
+using WriteBalance.Application.Interfaces;
 using WriteBalance.Common.Logging;
+using WriteBalance.Domain.Entities;
+using WriteBalance.Infrastructure.Context;
+using WriteBalance.Infrastructure.Services;
 
 namespace WriteBalance.Infrastructure.Repositories
 {
@@ -82,7 +83,11 @@ namespace WriteBalance.Infrastructure.Repositories
             {
                 _context.Database.SetCommandTimeout(300);
 
-                var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
+                var pc = new PersianCalendar();
+                var now = DateTime.Now;
+
+                string timestamp = $"{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+
                 requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
@@ -224,7 +229,10 @@ namespace WriteBalance.Infrastructure.Repositories
             try
             {
 
-                var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
+                var pc = new PersianCalendar();
+                var now = DateTime.Now;
+                string timestamp = $"{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+
                 requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
                 request.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
 
@@ -356,7 +364,11 @@ namespace WriteBalance.Infrastructure.Repositories
             {
                 _pouyaContext.Database.SetCommandTimeout(300);
 
-                var timestamp = DateTime.Now.ToString("yyyy_MM_dd_hh_mm-ss");
+                var pc = new PersianCalendar();
+                var now = DateTime.Now;
+
+                string timestamp = $"{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+
                 requestDB.FileName = $"تراز  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
                 requestDB.FileNameRial = $"تراز ریالی  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
                 requestDB.FileNameArzi = $"تراز ارزی   {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
@@ -402,9 +414,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
                     string sql =$"EXEC  [10.15.43.52].[arzi].[dbo].[usp_in5GetArziBalance] {int.Parse(requestDB.TarazTypePouya)},3,'{startTimePersian}','{endTimePersian}'";
 
-                    Logger.WriteEntry(JsonConvert.SerializeObject(sql), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"TarazTypePouya : {int.Parse(requestDB.TarazTypePouya)}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
-                    var result = _pouyaContext.PouyaFinancialBalance
+                     var result = _pouyaContext.PouyaFinancialBalance
                                 .FromSqlRaw(sql)
                                 .ToList();
 

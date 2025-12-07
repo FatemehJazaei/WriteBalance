@@ -1,21 +1,23 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using WriteBalance.Application.DTOs;
-using WriteBalance.Domain.Entities;
-using WriteBalance.Application.Interfaces;
 using WriteBalance.Application.Exceptions;
-using System.IO;
-using System.Data;
-using DocumentFormat.OpenXml.Drawing;
-using Newtonsoft.Json;
+using WriteBalance.Application.Interfaces;
 using WriteBalance.Common.Logging;
+using WriteBalance.Domain.Entities;
+using System.Globalization;
 
 
 namespace WriteBalance.Application.Handlers
@@ -62,7 +64,6 @@ namespace WriteBalance.Application.Handlers
 
                 if (requestDB.TarazType == "-1")
                 {
-                    var UserInterBalanceName = request.BalanceName;
                     var resultHamrah = false;
                     var resultSama = false;
                     var resultKarbordi = false;
@@ -73,7 +74,6 @@ namespace WriteBalance.Application.Handlers
                     try
                     {
                         requestDB.TarazType = "1";
-                        request.BalanceName = UserInterBalanceName + " سما";
                          resultSama = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                     }
                     catch(ConnectionMessageException ex)
@@ -84,7 +84,6 @@ namespace WriteBalance.Application.Handlers
                     try
                     {
                         requestDB.TarazType = "4";
-                        request.BalanceName = UserInterBalanceName + " همراه";
                         resultHamrah = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                     }
                     catch (ConnectionMessageException ex)
@@ -95,7 +94,6 @@ namespace WriteBalance.Application.Handlers
                     try
                     {
                         requestDB.TarazType = "3";
-                        request.BalanceName = UserInterBalanceName + " کاربردی";
                         resultKarbordi = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                     }
                     catch (ConnectionMessageException ex)
@@ -199,6 +197,16 @@ namespace WriteBalance.Application.Handlers
 
         public async Task<bool> Handle_Rayan_Async(APIRequestDto request, DBRequestDto requestDB)
         {
+
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+
+            string timestamp = $"{pc.GetSecond(now):00}_{pc.GetMinute(now):00}-{pc.GetHour(now):00}" +
+                               $"_{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+
+            var balanceName = request.BalanceName;
+            request.BalanceName = $"{balanceName} رایان {timestamp}";
+
             var excelStream = await _excelExporter.CreateWorkbookAsync();
             Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
@@ -264,7 +272,11 @@ namespace WriteBalance.Application.Handlers
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
 
-                var timestamp = DateTime.Now.ToString("yyyy_MM_dd_hh_mm-ss");
+                var pc = new PersianCalendar();
+                var now = DateTime.Now;
+
+                string timestamp = $"{pc.GetSecond(now):00}_{pc.GetMinute(now):00}-{pc.GetHour(now):00}" +
+                                   $"_{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
                 var balanceName = request.BalanceName;
 
                 request.BalanceName = $"{balanceName} ارزی {timestamp}";
@@ -314,6 +326,25 @@ namespace WriteBalance.Application.Handlers
 
         public async Task<bool> Handle_Hamrah_Karbordi_Sama_Async(APIRequestDto request, DBRequestDto requestDB)
         {
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+
+            string timestamp = $"{pc.GetSecond(now):00}_{pc.GetMinute(now):00}-{pc.GetHour(now):00}" +
+                               $"_{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+            var balanceName = request.BalanceName;
+
+            switch (requestDB.TarazType)
+            {
+                case "1":
+                    request.BalanceName = $"{balanceName} سما {timestamp}";
+                    break;
+                case "3":
+                    request.BalanceName = $"{balanceName} کاربردی {timestamp}";
+                    break;
+                case "4":
+                    request.BalanceName = $"{balanceName} همراه {timestamp}";
+                    break;
+            }
             var excelStream = await _excelExporter.CreateWorkbookAsync();
             Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 

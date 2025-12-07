@@ -12,5 +12,7 @@ namespace WriteBalance.Domain.Entities
         public string Col2 { get; set; }
         public decimal Col3 { get; set; }
         public decimal Col4 { get; set; }
+        public decimal? Col5 { get; set; }
+        public decimal? Col6 { get; set; }
     }
 }

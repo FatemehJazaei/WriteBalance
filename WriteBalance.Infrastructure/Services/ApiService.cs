@@ -135,9 +135,7 @@ namespace WriteBalance.Infrastructure.Services
                     throw new Exception($"PostFileAsync failed. Status: {response.StatusCode}, Error: {error}");
                 }
 
-
                 var json = await response.Content.ReadAsStringAsync();
-                Logger.WriteEntry(JsonConvert.SerializeObject(json), $"ApiService: PostFileAsync--typeReport:Debug");
 
                 using var doc = JsonDocument.Parse(json);
    
@@ -268,7 +266,6 @@ namespace WriteBalance.Infrastructure.Services
                     name = request.BalanceName,
                     showCancel = true
                 };
-                Logger.WriteEntry(JsonConvert.SerializeObject(payload), $"ApiService: PostFileArziAsync--typeReport:Info");
 
                 var options = new JsonSerializerOptions
                 {
@@ -285,9 +282,7 @@ namespace WriteBalance.Infrastructure.Services
                     throw new Exception($"PostFileAsync failed. Status: {response.StatusCode}, Error: {error}");
                 }
 
-
                 var json = await response.Content.ReadAsStringAsync();
-                Logger.WriteEntry(JsonConvert.SerializeObject(json), $"ApiService: PostFileArziAsync--typeReport:Debug");
 
                 using var doc = JsonDocument.Parse(json);
 

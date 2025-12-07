@@ -17,20 +17,32 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class ExcelExporter : IExcelExporter
     {
-        private readonly XLWorkbook _workbookUpload;
-        private readonly XLWorkbook _workbookReport;
-        private readonly XLWorkbook _workbookUploadArzi;
+        private  XLWorkbook _workbookUpload;
+        private  XLWorkbook _workbookReport;
+        private  XLWorkbook _workbookUploadArzi;
 
         public ExcelExporter()
         {
-            _workbookReport = new XLWorkbook();
             _workbookUpload = new XLWorkbook();
+            _workbookReport = new XLWorkbook();
             _workbookUploadArzi = new XLWorkbook();
         }
 
-        public XLWorkbook GetWorkbookReport() => _workbookReport;
-        public XLWorkbook GetWorkbookUpload()=> _workbookUpload ;
-        public XLWorkbook GetWorkbookUploadArzi() => _workbookUploadArzi;
+        public XLWorkbook GetWorkbookReport()
+        {
+            _workbookReport = new XLWorkbook();
+            return _workbookReport;
+        }
+        public XLWorkbook GetWorkbookUpload()
+        {
+            _workbookUpload = new XLWorkbook();
+            return _workbookUpload;
+        }
+        public XLWorkbook GetWorkbookUploadArzi()
+        {
+            var _workbookUploadArzi = new XLWorkbook(); 
+            return _workbookUploadArzi = new XLWorkbook();
+        }
         public Task<MemoryStream> CreateWorkbookAsync()
             => Task.FromResult(new MemoryStream());
 
