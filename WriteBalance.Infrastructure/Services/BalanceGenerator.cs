@@ -248,7 +248,6 @@ namespace WriteBalance.Infrastructure.Services
             }
 
         }
-
         public async Task<MemoryStream> GenerateRawTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, XLWorkbook workbook, DBRequestDto requestDB)
         {
             try
@@ -357,7 +356,6 @@ namespace WriteBalance.Infrastructure.Services
                 );
             }
         }
-
         public async Task GeneratePoyaTablesAsync(List<PouyaFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB)
         {
             try
@@ -374,8 +372,8 @@ namespace WriteBalance.Infrastructure.Services
                 {
                     Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
                     Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
-                    Col3 = x.Mande_Bed_rial,
-                    Col4 = x.Mande_Bes_rial,
+                    Col3 = x.Mande_Bed_rial?? 0,
+                    Col4 = x.Mande_Bes_rial ?? 0,
                 }).ToList();
 
                 var mergedRows = MergeDuplicateRows(rowsRial);
@@ -450,8 +448,6 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
-
-                workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
 
                 var streamUpload = new MemoryStream();
@@ -463,15 +459,15 @@ namespace WriteBalance.Infrastructure.Services
                 {
                     Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
                     Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
-                    Col3 = x.Mande_Bed_arzi,
-                    Col4 = x.Mande_Bes_arzi,
+                    Col3 = x.Mande_Bed_arzi ?? 0,
+                    Col4 = x.Mande_Bes_arzi ?? 0,
                 }).ToList();
 
 
                 var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");
                 var worksheetReportArzi = workbookReport.Worksheets.Add("تراز اکسیر ارزی");
                 worksheetUploadArzi.RightToLeft = true;
-                worksheetUploadArzi.RightToLeft = true;
+                worksheetReportArzi.RightToLeft = true;
                 row = 2;
                 writeValue = 0;
 
@@ -545,7 +541,7 @@ namespace WriteBalance.Infrastructure.Services
                 var streamUploadArzi = new MemoryStream();
                 workbookUploadArzi.SaveAs(streamUploadArzi);
                 streamUploadArzi.Position = 0;
-                await excelExporter.SaveUploadAsync(streamUploadArzi, requestDB.FolderPath, requestDB.FileNameArzi);
+                await excelExporter.SaveUploadArziAsync(streamUploadArzi, requestDB.FolderPath, requestDB.FileNameArzi);
 
             }
             catch (ConnectionMessageException ex)
@@ -684,7 +680,7 @@ namespace WriteBalance.Infrastructure.Services
                     else
                     {
                         worksheet.Cell(row, 1).Value = item.Taraz_Date;
-                        worksheet.Cell(row, 2).Value = item.Code_shobeh;
+                        worksheet.Cell(row, 2).Value = 0;
                         worksheet.Cell(row, 3).Value = item.Kol_Code_Markazi;
                         worksheet.Cell(row, 4).Value = item.Kol_Title;
                         worksheet.Cell(row, 5).Value = item.Hesab_Code;

@@ -103,6 +103,7 @@ namespace WriteBalance.Application.Handlers
                         resultKarbordi = false;
                         errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در کاربردی :" + m ));
                     }
+                    /*
                     try 
                     {
                         requestDB.TarazType = "2";
@@ -125,6 +126,7 @@ namespace WriteBalance.Application.Handlers
                         resultRayan = false;
                         errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در رایان :" + m));
                     }
+
                     if (resultSama && resultHamrah && resultKarbordi && resultRayan && resultPouya) 
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject("All results is true!"), $"WriteBalanceHandler: HandleAsync--typeReport:Info");
@@ -138,6 +140,24 @@ namespace WriteBalance.Application.Handlers
                                 MessageType = MessageType.Error,
                                 Messages = errors
                             },
+                            request.FolderPath
+                            );
+                    }
+                    */
+
+                    if (resultSama && resultHamrah && resultKarbordi )
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject("All results is true!"), $"WriteBalanceHandler: HandleAsync--typeReport:Info");
+                        return await Task.FromResult(true);
+                    }
+                    else
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"resultSama: {resultSama}, resultHamrah: {resultHamrah}, resultKarbordi: {resultKarbordi}"), $"WriteBalanceHandler: HandleAsync--typeReport:Error");
+                        throw new ConnectionMessageException(new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = errors
+                        },
                             request.FolderPath
                             );
                     }
@@ -240,11 +260,37 @@ namespace WriteBalance.Application.Handlers
 
             if (requestDB.PrintOrReport == "1")
             {
-                var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(requestDB.FolderPath, requestDB.FileName);
-                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
-
                 var token = await _authService.GetAccessTokenAsync(request, CompanyId);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+
+                var timestamp = DateTime.Now.ToString("yyyy_MM_dd_hh_mm-ss");
+                var balanceName = request.BalanceName;
+
+                request.BalanceName = $"{balanceName} ارزی {timestamp}";
+                //Arzi
+                var fileBase64Arzi = await _fileEncoder.EncodeFileToBase64Async(requestDB.FolderPath, requestDB.FileNameArzi);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+                _ = await _apiService.GetVerifyUniqueNameArziAsync(token, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetVerifyUniqueNameAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+                bool PostApiArzi = await _apiService.PostFileArziAsync(token, fileBase64Arzi, request);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"PostFileAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+                //Delay
+                int DeleyMiliSec = (request.Delay + 1) * 1000;
+                await Task.Delay(DeleyMiliSec);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"DeleyMiliSec: {DeleyMiliSec}"), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+                //Riali
+                request.BalanceName = $"{balanceName} ریالی {timestamp}";
+
+                token = await _authService.GetAccessTokenAsync(request, CompanyId);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done again."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
+                var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(requestDB.FolderPath, requestDB.FileNameRial);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
                 _ = await _apiService.GetVerifyUniqueNameAsync(token, request);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GetVerifyUniqueNameAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
@@ -252,7 +298,13 @@ namespace WriteBalance.Application.Handlers
                 bool PostApi = await _apiService.PostFileAsync(token, fileBase64, request);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"PostFileAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
-                return await Task.FromResult(PostApi);
+
+                if (PostApiArzi && PostApi)
+                    return await Task.FromResult(true);
+                else
+                {
+                    return await Task.FromResult(false);
+                }
             }
             else
             {

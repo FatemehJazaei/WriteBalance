@@ -16,7 +16,9 @@ namespace WriteBalance.Application.DTOs
         public string BalanceName { get; set; }
         public string FileName { get; set; }
         public string FileNameArzi { get; set; }
+        public string FileNameRial { get; set; }
         public string FolderPath { get; set; }
+        public int Delay { get; set; }
 
     }
 }

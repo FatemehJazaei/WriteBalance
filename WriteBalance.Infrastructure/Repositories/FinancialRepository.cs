@@ -31,7 +31,7 @@ namespace WriteBalance.Infrastructure.Repositories
             _rayanContext = rayanContext;
             _checkInput = checkInput;
             _pouyaContext = pouyaContext;
-            _IsTest = true;
+            _IsTest = false;
         }
 
         public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
@@ -356,10 +356,13 @@ namespace WriteBalance.Infrastructure.Repositories
             {
                 _pouyaContext.Database.SetCommandTimeout(300);
 
-                var timestamp = DateTime.Now.ToString("yyyy_MM_dd");
+                var timestamp = DateTime.Now.ToString("yyyy_MM_dd_hh_mm-ss");
                 requestDB.FileName = $"تراز  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
                 requestDB.FileNameRial = $"تراز ریالی  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
                 requestDB.FileNameArzi = $"تراز ارزی   {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+                request.FileName = requestDB.FileName;
+                request.FileNameRial = requestDB.FileNameRial;
+                request.FileNameArzi = requestDB.FileNameArzi;
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
 
@@ -372,7 +375,7 @@ namespace WriteBalance.Infrastructure.Repositories
                                         @intRptKd ={1}, 
                                         @fromDate = {2},
                                         @ToDate  ={3}",
-                                    requestDB.TarazTypePouya,
+                                    int.Parse(requestDB.TarazTypePouya),
                                     3,
                                     $"{startTimePersian}",
                                    $"{endTimePersian}"
@@ -396,18 +399,13 @@ namespace WriteBalance.Infrastructure.Repositories
                 }
                 else
                 {
+
+                    string sql =$"EXEC  [10.15.43.52].[arzi].[dbo].[usp_in5GetArziBalance] {int.Parse(requestDB.TarazTypePouya)},3,'{startTimePersian}','{endTimePersian}'";
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject(sql), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"TarazTypePouya : {int.Parse(requestDB.TarazTypePouya)}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Info");
                     var result = _pouyaContext.PouyaFinancialBalance
-                                .FromSqlRaw(
-                                    @"EXEC  [10.15.43.52].Arzi.dbo.usp_in5GetArziBalance
-                                        @intBalkd  = {0}, 
-                                        @intRptKd ={1}, 
-                                        @fromDate = {2},
-                                        @ToDate  ={3}",
-                                    requestDB.TarazTypePouya,
-                                    3,
-                                    $"{startTimePersian}",
-                                   $"{endTimePersian}"
-                                )
+                                .FromSqlRaw(sql)
                                 .ToList();
 
                     if (result == null || result.Count == 0)

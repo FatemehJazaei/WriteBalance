@@ -33,8 +33,8 @@ namespace WriteBalance.Infrastructure.Context
                 entity.Property(e => e.Taraz_Date)
                     .HasColumnName("trz_dt");
 
-                entity.Property(e => e.Code_shobeh)
-                      .HasColumnName("brn_cod");
+                //entity.Property(e => e.Code_shobeh)
+                //.HasColumnName("brn_cod");
 
                 entity.Property(e => e.Kol_Code_Markazi)
                       .HasColumnName("cntrlbmi");

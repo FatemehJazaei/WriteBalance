@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
+﻿using DocumentFormat.OpenXml.Office2016.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,15 +7,34 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WriteBalance.Common.Logging;
+using System.Text.Json;
 
 namespace WriteBalance.Infrastructure.Services
 {
+    public class ConfigModel
+    {
+        public String UploadTimeSpanSeconds { get; set; }
+    }
     public static class InfoFileReader
     {
         public static async Task<Dictionary<string, string>> ReadAsync(string[] args)
         {
             try
             {
+                string filePathJson = Path.Combine(AppContext.BaseDirectory, @"..\..\..\SecurityConfig.json");
+                filePathJson = Path.GetFullPath(filePathJson);
+
+
+                if (!File.Exists(filePathJson))
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"Info.txt not found at: {filePathJson}"), $"InfoFileReader: HandleAsync--typeReport:Error");
+                    throw new FileNotFoundException($"Info.txt not found at: {filePathJson}");
+                }
+
+                string jsonText = File.ReadAllText(filePathJson);
+
+                ConfigModel configJson = System.Text.Json.JsonSerializer.Deserialize<ConfigModel>(jsonText);
+
 
                 var config = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -49,6 +69,7 @@ namespace WriteBalance.Infrastructure.Services
                     Logger.WriteEntry(JsonConvert.SerializeObject($"{kv.Key} = {kv.Value}"), $"InfoFileReader: HandleAsync--typeReport:Info");
                 }
 
+                config["UploadTimeSpanSeconds"] = $"{configJson.UploadTimeSpanSeconds}";
                 config["UserNameDB"] = "SysSouratMali";
                 config["ptokenDB"] = "c3d8e6a3459b15c9";
                 config["objecttokenDB"] = "3d9758851923e42b";
@@ -58,10 +79,13 @@ namespace WriteBalance.Infrastructure.Services
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
 
-
-                config["AddressServerBank"] = "Exir-203";
+                /*
+                //config["AddressServerBank"] = "Exir-203";
+                config["AddressServerBank"] = "DESKTOP-262P9P4";
                 config["DataBaseNameBank"] = "Refah";
-                config["op"] = "E:\\Projects";
+                //config["op"] = "E:\\Projects";
+                config["op"] = "D:\\Refah";
+
                 config["of"] = "WriteBalance";
                 config["pi"] = "5046";
                 config["tarazType"] = "5";
@@ -71,7 +95,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["BalanceName"] = "BalanceTest8";
                 config["FromDateDB"] = "14040104";
                 config["ToDateDB"] = "14040424";
-
+                */
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
                 filePath = Path.GetFullPath(filePath);
 
@@ -104,4 +128,6 @@ namespace WriteBalance.Infrastructure.Services
             
         }
     }
+
+
 }

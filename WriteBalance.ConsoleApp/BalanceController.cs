@@ -45,6 +45,31 @@ namespace WriteBalanceConsoleApp
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
 
+                if (config["tarazType"] == "1" || config["tarazType"] == "3" ||
+                    config["tarazType"] == "4")
+                {
+                    config["FromVoucherNum"] = "";
+                    config["ToVoucherNum"] = "";
+                    config["ExceptVoucherNum"] = "";
+                    config["OnlyVoucherNum"] = "";
+                    config["tarazTypePouya"] = "";
+                }
+                if(config["tarazType"] == "2")
+                {
+                    //rayan
+                    config["tarazTypePouya"] = "";
+                }
+                if (config["tarazType"] == "5")
+                {
+                    //pouya
+                    config["FromVoucherNum"] = "";
+                    config["ToVoucherNum"] = "";
+                    config["ExceptVoucherNum"] = "";
+                    config["OnlyVoucherNum"] = "";
+
+                }
+
+
                 var request = new APIRequestDto
                 {
                     UserNameAPI = config["UserNameAPI"],
@@ -55,6 +80,8 @@ namespace WriteBalanceConsoleApp
                     FolderPath = folderPath,
                     FileName = "",
                     FileNameArzi = "",
+                    FileNameRial = "",
+                    Delay = int.Parse(config["UploadTimeSpanSeconds"]),
                 };
 
 
