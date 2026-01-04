@@ -40,8 +40,8 @@ namespace WriteBalance.Infrastructure.Services
         }
         public XLWorkbook GetWorkbookUploadArzi()
         {
-            var _workbookUploadArzi = new XLWorkbook(); 
-            return _workbookUploadArzi = new XLWorkbook();
+            _workbookUploadArzi = new XLWorkbook(); 
+            return _workbookUploadArzi;
         }
         public Task<MemoryStream> CreateWorkbookAsync()
             => Task.FromResult(new MemoryStream());
@@ -71,9 +71,18 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (_workbookReport != null)
                 {
-                    _workbookReport.Worksheets.Delete("تراز خام");
-                    _workbookReport.Worksheets.Delete("تراز اکسیر ارزی");
-                    _workbookReport.Worksheets.Delete("تراز اکسیر ریالی");
+                    if (_workbookReport.Worksheets.Contains("تراز خام"))
+                    {
+                        _workbookReport.Worksheets.Delete("تراز خام");
+                    }
+                    if (_workbookReport.Worksheets.Contains("تراز اکسیر ارزی"))
+                    {
+                        _workbookReport.Worksheets.Delete("تراز اکسیر ارزی");
+                    }
+                    if (_workbookReport.Worksheets.Contains("تراز اکسیر ریالی"))
+                    {
+                        _workbookReport.Worksheets.Delete("تراز اکسیر ریالی");
+                    }
                     _workbookReport.Dispose();   
                 }
             }
@@ -104,7 +113,11 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (_workbookUpload != null)
                 {
-                    _workbookUpload.Worksheets.Delete("Data");
+                    if (_workbookUpload.Worksheets.Contains("Data"))
+                    {
+                        _workbookUpload.Worksheets.Delete("Data");
+                    }
+
                     _workbookUpload.Dispose();  
                 }
             }
@@ -136,7 +149,10 @@ namespace WriteBalance.Infrastructure.Services
 
                 if (_workbookUploadArzi != null)
                 {
-                    _workbookUploadArzi.Worksheets.Delete("Data");
+                    if(_workbookUploadArzi.Worksheets.Contains("Data"))
+                    {
+                        _workbookUploadArzi.Worksheets.Delete("Data");
+                    }
                     _workbookUploadArzi.Dispose();
                 }
             }

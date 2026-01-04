@@ -264,8 +264,8 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.Cell(row, 2).Value = "Kol_Title";
                 worksheet.Cell(row, 3).Value = "Moeen_Code";
                 worksheet.Cell(row, 4).Value = "Moeen_Title";
-                worksheet.Cell(row, 5).Value = "Tafzil_Code";
-                worksheet.Cell(row, 6).Value = "Tafzil_Tilte";
+                worksheet.Cell(row, 5).Value = "Tafsil_Code";
+                worksheet.Cell(row, 6).Value = "Tafsil_Tilte";
                 worksheet.Cell(row, 7).Value = "FinApplication_Title";
                 worksheet.Cell(row, 8).Value = "AccountNature_ID";
                 worksheet.Cell(row, 9).Value = "AccountNature_Title";
@@ -1144,7 +1144,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.Cell(row, 7).Value = "کد ارز";
                 worksheet.Cell(row, 8).Value = "گروه معین";
                 worksheet.Cell(row, 9).Value = "معین";
-                worksheet.Cell(row, 10).Value = "تفضیلی";
+                worksheet.Cell(row, 10).Value = "تفصیلی";
                 worksheet.Cell(row, 11).Value = "کد اختصاری ارز";
                 worksheet.Cell(row, 12).Value = "شرح ارز";
                 worksheet.Cell(row, 13).Value = "مانده بدهکار ارزی";

@@ -397,9 +397,10 @@ namespace WriteBalance.Infrastructure.Repositories
                                 )
                                 .ToList();
 
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                     if (result == null || result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                        
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -422,10 +423,10 @@ namespace WriteBalance.Infrastructure.Repositories
                                 .ToList();
 
                     Logger.WriteEntry(JsonConvert.SerializeObject($"sql = {sql} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
-
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
                     if (result == null || result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                       
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
