@@ -360,6 +360,9 @@ namespace WriteBalance.Infrastructure.Repositories
                 );
             }
 
+
+
+
             try
             {
                 _pouyaContext.Database.SetCommandTimeout(300);
@@ -417,6 +420,8 @@ namespace WriteBalance.Infrastructure.Repositories
                      var result = _pouyaContext.PouyaFinancialBalance
                                 .FromSqlRaw(sql)
                                 .ToList();
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"sql = {sql} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
 
                     if (result == null || result.Count == 0)
                     {

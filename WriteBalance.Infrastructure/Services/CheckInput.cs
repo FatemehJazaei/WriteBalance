@@ -214,6 +214,25 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                if (config["tarazType"] == "5")
+                {
+                    if (config["tarazTypePouya"] != "1" && config["tarazTypePouya"] != "2" && config["tarazTypePouya"] != "3")
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject("tarazTypePouya is empty"), $"CheckInput--typeReport:Error");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $" نوع تراز پویا نامشخص است. " }
+                            },
+                        Path.Combine(config["op"], config["of"])
+                        );
+                    }
+                }
+
+
+
                 return true;
             }
             catch (Exception ex)
