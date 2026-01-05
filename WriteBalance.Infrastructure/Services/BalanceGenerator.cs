@@ -35,15 +35,18 @@ namespace WriteBalance.Infrastructure.Services
                 var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
-                var rows = financialRecords.Select(x => new ExcelRow
-                {
-                    Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
-                    Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
-                    Col3 = x.Remain_First_Debit ?? decimal.Zero,
-                    Col4 = x.Remain_First_Credit?? decimal.Zero,
-                    Col5 = x.Flow_Debit ?? decimal.Zero,
-                    Col6 = x.Flow_Credit ?? decimal.Zero,
-                }).ToList();
+                // فیلتر کردن کد کل 6
+                var rows = financialRecords
+                    .Where(x => x.Kol_Code != "6")
+                    .Select(x => new ExcelRow
+                    {
+                        Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
+                        Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
+                        Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                        Col4 = x.Remain_First_Credit?? decimal.Zero,
+                        Col5 = x.Flow_Debit ?? decimal.Zero,
+                        Col6 = x.Flow_Credit ?? decimal.Zero,
+                    }).ToList();
 
                 var rowsEditRemain = await Calculate_New_rows(rows);
                 var mergedRows = MergeDuplicateRows(rowsEditRemain);
@@ -857,7 +860,9 @@ namespace WriteBalance.Infrastructure.Services
                 var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
-                var rowsRial = financialRecords.Select(x => new ExcelRow
+                var rowsRial = financialRecords
+                .Where(x => x.Kol_Code != 6)
+                .Select(x => new ExcelRow
                 {
                     Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
                     Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
@@ -1263,43 +1268,110 @@ namespace WriteBalance.Infrastructure.Services
                 var streamReport = await GenerateRawRayanTablesAsync(RayanFinancialRecord, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
-                var rows = RayanFinancialRecord.Select(x =>
-                {
+                //var rows = RayanFinancialRecord
+                //.Where(x => x.Kol_Code != "6")
+                //.Select(x =>
+                //{
+                //    var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code[^4..]}";
+                //    var title = $"{x.Kol_Title}_{x.Moeen_Title}_{x.Tafsili_Title}";
 
-                    var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code[^4..]}";
-                    var title = $"{x.Kol_Title}_{x.Moeen_Title}_{x.Tafsili_Title}";
+                //    if (x.joze1_Code.Length == 17)
+                //    {
+                //        code += $"_{x.joze1_Code[^6..]}";
+                //        title += $"_{x.joze1_Title}";
+                //    }
+                //    else
+                //    {
+                //        code += $"_0";
+                //    }
 
-                    if (x.joze1_Code.Length == 17)
+                //    if (x.joze2_Code.Length == 21)
+                //    {
+                //        code += $"_{x.joze2_Code[^4..]}";
+                //        title += $"_{x.joze2_Title}";
+                //    }
+                //    else
+                //    {
+                //        code += $"_0";
+                //    }
+
+                //    return new ExcelRow
+                //    {
+                //        Col1 = code,
+                //        Col2 = title,
+                //        Col3 = (decimal)x.Mande_Bed,
+                //        Col4 = (decimal)x.Mande_Bes,
+                //    };
+
+                //}).ToList();
+
+                //فیلتر کد کل 6
+
+
+                var filteredSource = RayanFinancialRecord
+                    .Where(x => x.Kol_Code != "6");
+
+                //  رکوردهای خاص 4131_005 و 4131_006 فقط یک رکورد
+                var specialMoeenCodes = new[] { "005", "006" };
+
+                var specialRows = filteredSource
+                    .Where(x => x.Kol_Code == "4131" && specialMoeenCodes.Contains(x.Moeen_Code))
+                    .GroupBy(x => new { x.Kol_Code, x.Moeen_Code })
+                    .Select(g =>
                     {
-                        code += $"_{x.joze1_Code[^6..]}";
-                        title += $"_{x.joze1_Title}";
+                        var first = g.First();
 
+                        return new ExcelRow
+                        {
+                            Col1 = $"{first.Kol_Code}_{first.Moeen_Code}",
+                            Col2 = $"{first.Kol_Title}_{first.Moeen_Title}",
+                            Col3 = g.Sum(x => (decimal)x.Mande_Bed),
+                            Col4 = g.Sum(x => (decimal)x.Mande_Bes)
+                        };
+                    });
 
-                    }
-                    else
+                //  بقیه رکوردها   
+                var normalRows = filteredSource
+                    .Where(x => !(x.Kol_Code == "4131" && specialMoeenCodes.Contains(x.Moeen_Code)))
+                    .Select(x =>
                     {
-                        code += $"_0";
-                    }
+                        var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code[^4..]}";
+                        var title = $"{x.Kol_Title}_{x.Moeen_Title}_{x.Tafsili_Title}";
 
-                    if (x.joze2_Code.Length == 21)
-                    {
-                        code += $"_{x.joze2_Code[^4..]}";
-                        title += $"_{x.joze2_Title}";
-                    }
-                    else
-                    {
-                        code += $"_0";
-                    }
+                        if (x.joze1_Code.Length == 17)
+                        {
+                            code += $"_{x.joze1_Code[^6..]}";
+                            title += $"_{x.joze1_Title}";
+                        }
+                        else
+                        {
+                            code += "_0";
+                        }
 
-                    return new ExcelRow
-                    {
-                        Col1 = code,
-                        Col2 = title,
-                        Col3 = (decimal)x.Mande_Bed,
-                        Col4 = (decimal)x.Mande_Bes,
-                    };
+                        if (x.joze2_Code.Length == 21)
+                        {
+                            code += $"_{x.joze2_Code[^4..]}";
+                            title += $"_{x.joze2_Title}";
+                        }
+                        else
+                        {
+                            code += "_0";
+                        }
 
-                }).ToList();
+                        return new ExcelRow
+                        {
+                            Col1 = code,
+                            Col2 = title,
+                            Col3 = (decimal)x.Mande_Bed,
+                            Col4 = (decimal)x.Mande_Bes
+                        };
+                    });
+
+
+                //  ترکیب نهایی
+                var rows = specialRows
+                    .Concat(normalRows)
+                    .ToList();
 
                 var mergedRows = MergeDuplicateRows(rows);
 
