@@ -51,15 +51,15 @@ class Program
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
-                   
-                    services.AddDbContext<BankDbContext>(options =>
-                        options.UseSqlServer(connectionString));
+                    
+                     services.AddDbContext<BankDbContext>(options =>
+                         options.UseSqlServer(connectionString));
 
-                    services.AddDbContext<RayanBankDbContext>(options =>
-                        options.UseSqlServer(connectionString));
+                     services.AddDbContext<RayanBankDbContext>(options =>
+                         options.UseSqlServer(connectionString));
 
-                    services.AddDbContext<PouyaBankDbContext>(options =>
-                        options.UseSqlServer(connectionString));
+                     services.AddDbContext<PouyaBankDbContext>(options =>
+                         options.UseSqlServer(connectionString));
 
                     /*
                    string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
@@ -70,9 +70,9 @@ class Program
                    services.AddDbContext<RayanBankDbContext>(options =>
                        options.UseSqlServer(bankConnectionString));
 
-                                       services.AddDbContext<PouyaBankDbContext>(options =>
+                   services.AddDbContext<PouyaBankDbContext>(options =>
                        options.UseSqlServer(bankConnectionString));
-                    */
+                   */
                     services.Configure<AuthConfig>(
                         context.Configuration.GetSection("AuthConfig")
                     );

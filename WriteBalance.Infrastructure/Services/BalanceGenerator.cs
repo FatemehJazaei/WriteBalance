@@ -143,7 +143,7 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReport.Cell(row, 1).Value = item.Col1;
                         worksheetReport.Cell(row, 2).Value = item.Col2;
                         worksheetReport.Cell(row, 3).Value = item.Col3;
-                        worksheetReport.Cell(row, 4).Value = item.Col4; ;
+                        worksheetReport.Cell(row, 4).Value = item.Col4; 
 
                         row++;
                         writeValue++;

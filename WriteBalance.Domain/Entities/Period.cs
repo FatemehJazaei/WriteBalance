@@ -10,6 +10,9 @@ namespace WriteBalance.Domain.Entities
     {
         public int Id { get; set; }
         public int CompanyId { get; set; }
+        public int StateType { get; set; }
+        public bool Closed  { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime TimeEnd { get; set; }
     }

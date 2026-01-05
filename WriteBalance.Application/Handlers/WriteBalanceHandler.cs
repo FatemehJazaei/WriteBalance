@@ -210,7 +210,7 @@ namespace WriteBalance.Application.Handlers
             var excelStream = await _excelExporter.CreateWorkbookAsync();
             Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-             (var CompanyId, DateTime startTime, DateTime endTime ) = await _periodRepository.GetTimeAsync(request);
+             (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime ) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput( requestDB, startTime, endTime);
@@ -229,6 +229,17 @@ namespace WriteBalance.Application.Handlers
 
             if (requestDB.PrintOrReport == "1")
             {
+                if (isClosed)
+                {
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $".در دوره مالی بسته یا غیرفعال، بارگذاری تراز امکان پذیر نیست" }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
                 var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(requestDB.FolderPath, requestDB.FileName);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
@@ -254,7 +265,7 @@ namespace WriteBalance.Application.Handlers
             var excelStream = await _excelExporter.CreateWorkbookAsync();
             Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
-            (var CompanyId, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -266,8 +277,20 @@ namespace WriteBalance.Application.Handlers
             await _balanceGenerator.GeneratePoyaTablesAsync(financialRecord, _excelExporter, requestDB);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GeneratePoyaTablesAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
+
             if (requestDB.PrintOrReport == "1")
             {
+                if (isClosed)
+                {
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $".در دوره مالی بسته یا غیرفعال، بارگذاری تراز امکان پذیر نیست" }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
                 var token = await _authService.GetAccessTokenAsync(request, CompanyId);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
@@ -348,7 +371,7 @@ namespace WriteBalance.Application.Handlers
             var excelStream = await _excelExporter.CreateWorkbookAsync();
             Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
-            (var CompanyId, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
+            (var CompanyId,  bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -366,6 +389,18 @@ namespace WriteBalance.Application.Handlers
 
             if (requestDB.PrintOrReport == "1")
             {
+                if (isClosed)
+                {
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $".در دوره مالی بسته یا غیرفعال، بارگذاری تراز امکان پذیر نیست" }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
                 var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(requestDB.FolderPath, requestDB.FileName);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 

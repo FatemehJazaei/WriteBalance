@@ -24,7 +24,7 @@ namespace WriteBalance.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<(int, DateTime, DateTime)> GetTimeAsync(APIRequestDto request)
+        public async Task<(int, bool, DateTime, DateTime)> GetTimeAsync(APIRequestDto request)
         {
             try
             {
@@ -33,10 +33,16 @@ namespace WriteBalance.Infrastructure.Repositories
                 var entity = await _context.Periods
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == request.PeriodId);
+                
+                Logger.WriteEntry(JsonConvert.SerializeObject($"CompanyId:{entity.CompanyId},StartDate:{entity.StartDate},TimeEnd:{entity.TimeEnd} , Closed:{entity.Closed}, Closed:{entity.StateType} "), $"PeriodRepository:GetTimeAsync--typeReport:Debug");
 
-                Logger.WriteEntry(JsonConvert.SerializeObject($"CompanyId:{entity.CompanyId},StartDate:{entity.StartDate},TimeEnd:{entity.TimeEnd} "), $"PeriodRepository:GetTimeAsync--typeReport:Debug");
+                bool isClosed = false;
+                if (entity.Closed == true || entity.StateType == 0 ) 
+                {
+                    isClosed = true;
+                }
 
-                return (entity.CompanyId, entity.StartDate, entity.TimeEnd);
+                return (entity.CompanyId, isClosed, entity.StartDate, entity.TimeEnd);
             }
             catch (Exception ex)
             {
