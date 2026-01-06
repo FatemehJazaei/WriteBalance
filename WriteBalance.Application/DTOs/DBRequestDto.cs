@@ -1,4 +1,6 @@
-﻿namespace WriteBalance.Application.DTOs
+﻿using WriteBalance.Domain.Entities;
+
+namespace WriteBalance.Application.DTOs
 {
     public class DBRequestDto
     {
@@ -20,5 +22,6 @@
         public string FileNameRial { get; set; }
         public string FileNameArzi { get; set; }
         public string FolderPath { get; set; }
+        public List<ExceptCode> ExceptCode { get; set; }
     }
 }

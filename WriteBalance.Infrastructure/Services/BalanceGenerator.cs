@@ -37,7 +37,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 // فیلتر کردن کد کل 6
                 var rows = financialRecords
-                    .Where(x => x.Kol_Code != "6")
+                    .Where(x => x.Kol_Code[0] != '6')
                     .Select(x => new ExcelRow
                     {
                         Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
@@ -861,7 +861,7 @@ namespace WriteBalance.Infrastructure.Services
                 streamReport.Position = 0;
 
                 var rowsRial = financialRecords
-                .Where(x => x.Kol_Code != 6)
+                .Where(x => x.Kol_Code.ToString()[0] != '6')
                 .Select(x => new ExcelRow
                 {
                     Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
@@ -949,7 +949,9 @@ namespace WriteBalance.Infrastructure.Services
                 streamUpload.Position = 0;
                 await excelExporter.SaveUploadAsync(streamUpload, requestDB.FolderPath, requestDB.FileNameRial);
 
-                var rowsArzi = financialRecords.Select(x => new ExcelRow
+                var rowsArzi = financialRecords
+                    .Where(x => x.Kol_Code.ToString()[0] != '6')
+                    .Select(x => new ExcelRow
                 {
                     Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
                     Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
@@ -1307,15 +1309,17 @@ namespace WriteBalance.Infrastructure.Services
 
                 //فیلتر کد کل 6
 
-
                 var filteredSource = RayanFinancialRecord
-                    .Where(x => x.Kol_Code != "6");
+                    .Where(x => x.Kol_Code[0] != '6');
 
-                //  رکوردهای خاص 4131_005 و 4131_006 فقط یک رکورد
-                var specialMoeenCodes = new[] { "005", "006" };
 
-                var specialRows = filteredSource
-                    .Where(x => x.Kol_Code == "4131" && specialMoeenCodes.Contains(x.Moeen_Code))
+                List<ExcelRow> specialRows = new List<ExcelRow>();
+                if (requestDB.ExceptCode.Count != 0)
+                {
+                    specialRows = filteredSource
+                    .Where(x => requestDB.ExceptCode.Any(ec =>
+                        ec.Kol_Code == x.Kol_Code &&
+                        ec.Moeen_Code == x.Moeen_Code[^3..]))
                     .GroupBy(x => new { x.Kol_Code, x.Moeen_Code })
                     .Select(g =>
                     {
@@ -1323,16 +1327,20 @@ namespace WriteBalance.Infrastructure.Services
 
                         return new ExcelRow
                         {
-                            Col1 = $"{first.Kol_Code}_{first.Moeen_Code}",
+                            Col1 = $"{first.Kol_Code}_{first.Moeen_Code[^3..]}_0_0_0",
                             Col2 = $"{first.Kol_Title}_{first.Moeen_Title}",
                             Col3 = g.Sum(x => (decimal)x.Mande_Bed),
                             Col4 = g.Sum(x => (decimal)x.Mande_Bes)
                         };
-                    });
+                    })
+                    .ToList();
+                }
 
                 //  بقیه رکوردها   
                 var normalRows = filteredSource
-                    .Where(x => !(x.Kol_Code == "4131" && specialMoeenCodes.Contains(x.Moeen_Code)))
+                    .Where(x => !requestDB.ExceptCode.Any(ec =>
+                        ec.Kol_Code == x.Kol_Code &&
+                        ec.Moeen_Code == x.Moeen_Code[^3..]))
                     .Select(x =>
                     {
                         var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code[^4..]}";
@@ -1451,11 +1459,13 @@ namespace WriteBalance.Infrastructure.Services
                 var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
+                //سطر اول خالی است
                 int row = 2;
                 int writeValue = 0;
 
                 foreach (var item in mergedRows)
                 {
+                    // AllOrHasMandeh : مقدار 1 همه رکورد ها را برمیگرداند و مقدار 2 فقط مانده دار ها 
                     if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
                     {
                         continue;

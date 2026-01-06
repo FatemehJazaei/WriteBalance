@@ -88,14 +88,14 @@ namespace WriteBalance.Infrastructure.Services
 
                 config["of"] = "WriteBalance";
                 config["pi"] = "5046";
-                config["tarazType"] = "1";
+                config["tarazType"] = "2";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
-                config["PrintOrReport"] = "1";
+                config["PrintOrReport"] = "2";
                 config["BalanceName"] = "BalanceTest8";
-                config["FromDateDB"] = "14040104";
+                config["FromDateDB"] = "14040101";
                 config["ToDateDB"] = "14040424";
-                
+                config["ExceptCode"] = "4131_002|4131_004";
                 */
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");

@@ -19,9 +19,11 @@ class Program
         try
         {
             Logger.WriteEntry(JsonConvert.SerializeObject("Starting Applicaion"), $"Program:Main--typeReport:Info");
-
+            // جداسازی متغیرهای دریافتی کنسول
             var config = await InfoFileReader.ReadAsync(args);
 
+            // تنظیم و چک کردن مسیر و نام پوشه وارد شده
+            // در صورتی که وجود نداشته باشد ، ایجاد میشود
             string folderName = config["of"];
             string path = config["op"];
 
@@ -39,6 +41,8 @@ class Program
                 {
                     var basePath = AppContext.BaseDirectory;
                     configBuilder.SetBasePath(basePath);
+                    // خواندن اطلاعات  از فایل 
+                    //appsettings.json
                     configBuilder.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
                     configBuilder.AddEnvironmentVariables();
                     configBuilder.AddUserSecrets<Program>(optional: true);
@@ -51,15 +55,18 @@ class Program
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
-                    
+                    //دیتابیس برای سما و همراه و کاربردی 
                     services.AddDbContext<BankDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
+                    // دیتابیس برای رایان
                     services.AddDbContext<RayanBankDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
+                    // دیتابیس برای پویا
                     services.AddDbContext<PouyaBankDbContext>(options =>
                         options.UseSqlServer(connectionString));
+
 
                     /*
                     string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
@@ -72,7 +79,8 @@ class Program
 
                    services.AddDbContext<PouyaBankDbContext>(options =>
                        options.UseSqlServer(bankConnectionString));
-                   */
+
+                    */
 
 
                     services.Configure<AuthConfig>(
@@ -92,6 +100,8 @@ class Program
                     services.AddScoped<IPeriodRepository, PeriodRepository>();
                     services.AddScoped<IFileEncoder, FileEncoder>();
 
+                    // دریافت تنظیمات از فایل 
+                    //appsettings.json
                     var apiSettings = context.Configuration.GetSection("ApiSettings").Get<ApiSettings>()!;
                     var apiConfig = new ApiConfig
                     {

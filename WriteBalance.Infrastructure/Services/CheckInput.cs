@@ -1,4 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Vml;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Application.Interfaces;
 using WriteBalance.Common.Logging;
+using WriteBalance.Domain.Entities;
 using WriteBalance.Infrastructure.Repositories;
 using Path = System.IO.Path;
 
@@ -17,7 +20,6 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class CheckInput: ICheckInput
     {
-
         public (string, string) CheckDateInput(DBRequestDto requestDB, DateTime startDateTime, DateTime endDateTime)
         {
             try 
@@ -242,6 +244,53 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+        public List<ExceptCode> CheckExceptCode(Dictionary<string, string> config)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting CheckExceptCode ..."), $"CheckInput:CheckExceptCode--typeReport:Info");
+                List<ExceptCode> RayanExceptCode = new List<ExceptCode>();
+                if (config["ExceptCode"] != "")
+                {
+                    string[] Codes = config["ExceptCode"].Split('|');
+                    foreach (string Code in Codes) {
+                        var parts = Code.Split('_',2);
+                        if (parts.Length == 2)
+                        {
+                            if (parts[0].Length == 4 && parts[1].Length == 3 && int.TryParse(parts[0], out var number0) && int.TryParse(parts[1], out var number1))
+                            {
+                                RayanExceptCode.Add(new ExceptCode
+                                {
+                                    Kol_Code = parts[0],
+                                    Moeen_Code = parts[1]
+                                });
+                            }
+                            else 
+                            {
+                                throw new Exception($"code is wrong! parts[0]: {parts[0]} , parts[1]: {parts[1]}");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"code doesn't has two parts! Code: {Code}");
+                        }
+                    }
 
+                }
+                return RayanExceptCode;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"{ex}"), $"CheckInput:CheckExceptCode--typeReport:Error");
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $"کدها به صورت صحیح وارد نشده اند." }
+                    },
+                Path.Combine(config["op"], config["of"])
+                );
+            }
+        }
     }
 }

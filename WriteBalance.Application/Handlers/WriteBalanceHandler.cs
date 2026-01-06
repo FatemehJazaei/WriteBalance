@@ -219,7 +219,6 @@ namespace WriteBalance.Application.Handlers
             var financialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-
             excelStream = await _balanceGenerator.GenerateRayanTablesAsync(financialRecord, _excelExporter, requestDB);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateRayanTablesAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
@@ -259,6 +258,7 @@ namespace WriteBalance.Application.Handlers
                 return await Task.FromResult(true);
             }
         }
+
 
         public async Task<bool> Handle_Poya_Async(APIRequestDto request, DBRequestDto requestDB)
         {

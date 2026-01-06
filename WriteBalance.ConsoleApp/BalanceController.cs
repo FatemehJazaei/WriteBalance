@@ -6,11 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
-using WriteBalance.Application.Handlers;
 using WriteBalance.Application.Exceptions;
-using WriteBalance.Infrastructure.Services;
-using WriteBalance.Common.Logging;
+using WriteBalance.Application.Handlers;
 using WriteBalance.Application.Interfaces;
+using WriteBalance.Common.Logging;
+using WriteBalance.Domain.Entities;
+using WriteBalance.Infrastructure.Services;
 
 namespace WriteBalanceConsoleApp
 {
@@ -31,6 +32,7 @@ namespace WriteBalanceConsoleApp
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
 
                 var InputValid = _checkInput.CheckUserInput(config);
+                List<ExceptCode> ExceptCodes = _checkInput.CheckExceptCode(config);
 
                 string folderName = config["of"];
                 string path = config["op"];
@@ -45,6 +47,7 @@ namespace WriteBalanceConsoleApp
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
 
+                // sama , karbourdi, hamrah
                 if (config["tarazType"] == "1" || config["tarazType"] == "3" ||
                     config["tarazType"] == "4")
                 {
@@ -53,6 +56,7 @@ namespace WriteBalanceConsoleApp
                     config["ExceptVoucherNum"] = "";
                     config["OnlyVoucherNum"] = "";
                     config["tarazTypePouya"] = "";
+                    config["ExceptCode"] = "";
                 }
                 if(config["tarazType"] == "2")
                 {
@@ -62,6 +66,7 @@ namespace WriteBalanceConsoleApp
                 if (config["tarazType"] == "5")
                 {
                     //pouya
+                    config["ExceptCode"] = "";
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
                     config["ExceptVoucherNum"] = "";
@@ -105,6 +110,7 @@ namespace WriteBalanceConsoleApp
                     FileName = "",
                     FileNameRial = "",
                     FileNameArzi = "",
+                    ExceptCode = ExceptCodes,
                 };
 
                 var result = await _writeBalanceHandler.HandleAsync(request, requestDB);
