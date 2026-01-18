@@ -23,7 +23,8 @@ namespace WriteBalance.Infrastructure.Repositories
         {
             _context = context;
         }
-
+        //دریافت تاریخ شروع و پایان دوره  
+        //دریافت حالت  دوره مالی بسته شده یا غیر فعال شده 
         public async Task<(int, bool, DateTime, DateTime)> GetTimeAsync(APIRequestDto request)
         {
             try
@@ -36,6 +37,7 @@ namespace WriteBalance.Infrastructure.Repositories
                 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"CompanyId:{entity.CompanyId},StartDate:{entity.StartDate},TimeEnd:{entity.TimeEnd} , Closed:{entity.Closed}, Closed:{entity.StateType} "), $"PeriodRepository:GetTimeAsync--typeReport:Debug");
 
+                // در صورتی که دوره مالی غیرفعال یا بسته شده است
                 bool isClosed = false;
                 if (entity.Closed == true || entity.StateType == 0 ) 
                 {

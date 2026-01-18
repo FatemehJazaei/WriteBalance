@@ -12,6 +12,7 @@ namespace WriteBalance.Infrastructure.Services
 
         private static readonly PersianCalendar PersianCalendar = new PersianCalendar();
 
+        //تبدیل به تاریخ شمسی
         public static string ToPersianDate(this DateTime dateTime)
         {
 
@@ -21,7 +22,7 @@ namespace WriteBalance.Infrastructure.Services
             return PersianCalendar.GetYear(dateTime) + month + day;
 
         }
-
+        
         public static DateTime ToGeorgianDate(this string persianDate, bool isStart)
         {
             var dateInfo = persianDate.Split('/');
@@ -36,6 +37,7 @@ namespace WriteBalance.Infrastructure.Services
 
         }
 
+        // تاریخ معتبر است
         public static bool IValidDate(string dateStr)
         {
             try 

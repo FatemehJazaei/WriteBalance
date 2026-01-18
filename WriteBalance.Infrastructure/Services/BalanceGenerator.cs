@@ -22,16 +22,16 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class BalanceGenerator : IBalanceGenerator
     {
-
+        // تولید جدول برای همراه، سما و کاربردی 
         public async Task<MemoryStream> GenerateTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB)
         {
             try
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateTablesAsync"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Info");
-
+                // دو جدول اماده میشود، یکی برای گزارش و یکی برای اپلود 
                 var workbookReport = excelExporter.GetWorkbookReport();
                 var workbookUpload = excelExporter.GetWorkbookUpload();
-
+                // تولید شیت خام برای گزارش دهی 
                 var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
@@ -48,9 +48,11 @@ namespace WriteBalance.Infrastructure.Services
                         Col6 = x.Flow_Credit ?? decimal.Zero,
                     }).ToList();
 
+                // محاسبه مانده برای هر رکورد
                 var rowsEditRemain = await Calculate_New_rows(rows);
+                // یونیک کردن رکوردها بر اساس کد
                 var mergedRows = MergeDuplicateRows(rowsEditRemain);
-
+                // بررسی دوباره برای یونیک بودن کدها 
                 var duplicateKeys = mergedRows
                                     .GroupBy(r => r.Col1)
                                     .Where(g => g.Count() > 1)
@@ -64,6 +66,7 @@ namespace WriteBalance.Infrastructure.Services
                     mergedRows = MergeDuplicateRows(mergedRows);
                 }
 
+                // بررسی خالی نبودن شرح برای هر رکورد
                 var emptyCol2 = mergedRows.Where(r => string.IsNullOrWhiteSpace(r.Col2)).ToList();
 
                 if (emptyCol2.Any())
@@ -75,10 +78,12 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
+                //بررسی بالانس بودن تراز
                 decimal totalBed = mergedRows.Sum(r => r.Col3);
                 decimal totalBes = mergedRows.Sum(r => r.Col4);
                 var ekhtelaf = totalBed - totalBes;
 
+                // در صورتی که اختلاف کمتر از 100 باشد، یک رکورد جدید اضافه میشود با کد 123456789 و شرح بالانس که تراز را بالانس کند
                 if (totalBed != totalBes)
                 {
                     if (Math.Abs(ekhtelaf) > 100)
@@ -123,15 +128,21 @@ namespace WriteBalance.Infrastructure.Services
 
                 }
 
+                // افوزدن شیت تراز محاسبه شده به  فایل اکسل اپلود  و فایل گزارش
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
                 var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
                 worksheetUpload.RightToLeft = true;
                 worksheetReport.RightToLeft = true;
+                //سطر اول تراز خالی است 
                 int row = 2;
                 int writeValue = 0;
 
                 foreach (var item in mergedRows)
                 {
+                    // بررسی گزینه انتخاب شده : همه رکورد ها یا فقط مانده دار ها 
+                    // AllOrHasMandeh
+                    // همه 1
+                    // فقط مانده داره ها 2
                     if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
                     {
                         continue;
@@ -154,6 +165,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 }
 
+                // در صورتی که همه رکورد ها بدون مانده باشند ، هیچ رکوردی در اکسل نوشته نمی شود
                 if (writeValue == 0)
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
@@ -168,6 +180,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                // استایل دهی به گزارشی که به کاربر داده میشود
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
 
@@ -194,6 +207,7 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
 
+                // ذخیره فایل گزارش دهی 
                 workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
                 excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
@@ -210,6 +224,11 @@ namespace WriteBalance.Infrastructure.Services
             }
 
         }
+        // مرج کردن رکورد ها با کد یکسان 
+        // در صوتری که هم بستانکار و هم بدهکار داشته باشد 
+        // اختلاف قدر مطلق بستانکار و بدهکار 
+        // اگر مثبت باشد در ستون بدهکار 
+        // اگر منفی باشد در ستون بستانکار قرار میگیرد
         private List<ExcelRow> MergeDuplicateRows(List<ExcelRow> rows)
         {
             try
@@ -254,6 +273,7 @@ namespace WriteBalance.Infrastructure.Services
             }
 
         }
+        // تولید جدول  تراز خام برای همراه و سما و کاربردی
         public async Task<MemoryStream> GenerateRawTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, XLWorkbook workbook, DBRequestDto requestDB)
         {
             try
@@ -263,6 +283,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.RightToLeft = true;
                 int row = 1;
 
+                // عنوان ستون ها  تنظیم میشود
                 worksheet.Cell(row, 1).Value = "Kol_Code";
                 worksheet.Cell(row, 2).Value = "Kol_Title";
                 worksheet.Cell(row, 3).Value = "Moeen_Code";
@@ -284,6 +305,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in financialRecords)
                 {
+                    // بررسی گزینه همه رکوردها یا فقط مانده دار ها 
                     if (requestDB.AllOrHasMandeh == "2" && await Calculate_Last_Remain(item))
                     {
                         continue;
@@ -312,7 +334,7 @@ namespace WriteBalance.Infrastructure.Services
                         writeValue++;
                     }
                 }
-
+                // اگر همه ستون دار ها بدون مانده باشد، هیچ رکوردی در اکسل نوشته نمیشود 
                 if (writeValue == 0)
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
@@ -327,6 +349,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                // استایل دهی به اکسل گزارش دهی
                 worksheet.Style.Font.FontName = "B Nazanin";
                 worksheet.Style.Font.FontSize = 11;
 
@@ -373,6 +396,7 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+        // محاسبه مقادیر بستانکار و بدهکار با در نظر گرفتن گردش ها 
         public async Task<List<ExcelRow>> Calculate_New_rows(List<ExcelRow> Rows)
         {
             try
@@ -848,18 +872,23 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
         */
+        // تولید جدول برای پویا
         public async Task GeneratePoyaTablesAsync(List<PouyaFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB)
         {
             try
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GeneratePoyaTablesAsync"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Info");
-
+                //برای تراز پویا  دو فایل تراز ریالی و ارزی  و یک فایل گزارش داریم 
                 var workbookReport = excelExporter.GetWorkbookReport();
                 var workbookUpload = excelExporter.GetWorkbookUpload();
                 var workbookUploadArzi = excelExporter.GetWorkbookUploadArzi();
+
+                //  تولید جدول تراز خام برای گزارش دهی
                 var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
-
+                
+                // فرآیند تولید تراز ریالی 
+                //حذف کد 6
                 var rowsRial = financialRecords
                 .Where(x => x.Kol_Code.ToString()[0] != '6')
                 .Select(x => new ExcelRow
@@ -870,9 +899,12 @@ namespace WriteBalance.Infrastructure.Services
                     Col4 = x.Mande_Bes_rial ?? 0,
                 }).ToList();
 
+                //یونیک کردن کدها
                 var mergedRows = MergeDuplicateRows(rowsRial);
+                // بررسی بالانس بودن  تراز 
                 mergedRows = await checkBalance(mergedRows, excelExporter, requestDB, streamReport);
 
+                // اضافه کردن شیت برای تراز محاسبه شده اکسیر برای اپلود و گزارش دهی 
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
                 var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر ریالی");
                 worksheetUpload.RightToLeft = true;
@@ -882,6 +914,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in mergedRows)
                 {
+                    //بررسی گزینه همه یا مانده دارها
                     if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
                     {
                         continue;
@@ -903,6 +936,7 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
+                //بررسی اینکه همه رکورد ها مانده دار است یا نه 
                 if (writeValue == 0)
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
@@ -917,7 +951,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
-
+                //استایل دهی به گزارش 
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
 
@@ -944,6 +978,7 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Font.FontColor = XLColor.White;
                 streamReport.Position = 0;
 
+                // ذخیره فایل اکسل گزارش
                 var streamUpload = new MemoryStream();
                 workbookUpload.SaveAs(streamUpload);
                 streamUpload.Position = 0;
@@ -959,7 +994,7 @@ namespace WriteBalance.Infrastructure.Services
                     Col4 = x.Mande_Bes_arzi ?? 0,
                 }).ToList();
 
-
+                // شروع فرایند تولید اکسل ارزی
                 var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");
                 var worksheetReportArzi = workbookReport.Worksheets.Add("تراز اکسیر ارزی");
                 worksheetUploadArzi.RightToLeft = true;
@@ -967,8 +1002,10 @@ namespace WriteBalance.Infrastructure.Services
                 row = 2;
                 writeValue = 0;
 
+                //فرایند نوشتن رکوردها
                 foreach (var item in mergedRows)
                 {
+                    // چک کردن گزینه همه یا فقط مانده دارها 
                     if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
                     {
                         continue;
@@ -989,7 +1026,7 @@ namespace WriteBalance.Infrastructure.Services
                         writeValue++;
                     }
                 }
-
+                // بررسی حالتی که همه رکورد ها بدون مانده است
                 if (writeValue == 0)
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
@@ -1004,7 +1041,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
-
+                // استایل دهی یه گزارش
                 worksheetReportArzi.Style.Font.FontName = "B Nazanin";
                 worksheetReportArzi.Style.Font.FontSize = 11;
 
@@ -1030,6 +1067,7 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
 
+                // ذخیره فایل گزارش
                 workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
                 await excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
@@ -1046,6 +1084,7 @@ namespace WriteBalance.Infrastructure.Services
                 throw;
             }
         }
+        //بررسی بالانس بودن و خالی نبودن شرح و یونیک بودن کد ها 
         public async Task<List<ExcelRow>> checkBalance(List<ExcelRow> mergedRows, IExcelExporter excelExporter, DBRequestDto requestDB, MemoryStream streamReport)
         {
             try
@@ -1133,6 +1172,8 @@ namespace WriteBalance.Infrastructure.Services
                 throw;
             }
         }
+
+        //تولید تراز خام پویا
         public async Task<MemoryStream> GenerateRawPouyaTablesAsync(List<PouyaFinancialRecord> financialRecords, IExcelExporter excelExporter, XLWorkbook workbook, DBRequestDto requestDB)
         {
             try
@@ -1142,6 +1183,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.RightToLeft = true;
                 int row = 1;
 
+                // مقدار دهی سطر اول برای گزارش 
                 worksheet.Cell(row, 1).Value = "تاریخ انتهای بازه گزارش گیری";
                 worksheet.Cell(row, 2).Value = "کد شعبه";
                 worksheet.Cell(row, 3).Value = "کد کل از دید بانک مرکزی ";
@@ -1162,12 +1204,14 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.Cell(row, 18).Value = "گردش بستانکار ریالی";
                 worksheet.Cell(row, 19).Value = "گردش بدهکاری ارزی";
                 worksheet.Cell(row, 20).Value = "گردش بستانکار ارزی";
-
+                
                 row = 2;
                 int writeValue = 0;
 
+                // شروع نوشتن تراز ها
                 foreach (var item in financialRecords)
                 {
+                    // بررسی گزینه همه یا فقط مانده دار
                     if (requestDB.AllOrHasMandeh == "2" && item.Mande_Bed_arzi - item.Mande_Bes_arzi == 0)
                     {
                         continue;
@@ -1215,6 +1259,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                //استایل دهی  گزارش
                 worksheet.Style.Font.FontName = "B Nazanin";
                 worksheet.Style.Font.FontSize = 11;
 
@@ -1240,6 +1285,7 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
 
+                //ذخیره فایل گزارش
                 var stream = new MemoryStream();
                 workbook.SaveAs(stream);
                 stream.Position = 0;
@@ -1259,14 +1305,18 @@ namespace WriteBalance.Infrastructure.Services
                 );
             }
         }
+        
+        //تولید تراز  رایان
         public async Task<MemoryStream> GenerateRayanTablesAsync(List<RayanFinancialRecord> RayanFinancialRecord, IExcelExporter excelExporter, DBRequestDto requestDB)
         {
             try
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRayanTablesAsync"), $"BalanceGenerator:GenerateRayanTablesAsync --typeReport:Info");
-
+                
                 var workbookReport = excelExporter.GetWorkbookReport();
                 var workbookUpload = excelExporter.GetWorkbookUpload();
+
+                //تولید تراز خام برای گزارش
                 var streamReport = await GenerateRawRayanTablesAsync(RayanFinancialRecord, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
@@ -1308,11 +1358,11 @@ namespace WriteBalance.Infrastructure.Services
                 //}).ToList();
 
                 //فیلتر کد کل 6
-
                 var filteredSource = RayanFinancialRecord
                     .Where(x => x.Kol_Code[0] != '6');
 
-
+                //حذف کدهای دریافتی از کاربر تا سطح معین 
+                //حذف کدهای دریافتی از کاربر تا سطح معین 
                 List<ExcelRow> specialRows = new List<ExcelRow>();
                 if (requestDB.ExceptCode.Count != 0)
                 {
@@ -1381,8 +1431,10 @@ namespace WriteBalance.Infrastructure.Services
                     .Concat(normalRows)
                     .ToList();
 
+                // مرج کدها 
                 var mergedRows = MergeDuplicateRows(rows);
 
+                //چک کردن یونیک بودن کدها
                 var duplicateKeys = mergedRows
                                     .GroupBy(r => r.Col1)
                                     .Where(g => g.Count() > 1)
@@ -1396,6 +1448,7 @@ namespace WriteBalance.Infrastructure.Services
                     mergedRows = MergeDuplicateRows(mergedRows);
                 }
 
+                //چک کردن خالی بودن شرح رکوردها
                 var emptyCol2 = mergedRows.Where(r => string.IsNullOrWhiteSpace(r.Col2)).ToList();
 
                 if (emptyCol2.Any())
@@ -1407,6 +1460,7 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
+                // چک کردن بالانس بودن کدها
                 decimal totalBed = mergedRows.Sum(r => r.Col3);
                 decimal totalBes = mergedRows.Sum(r => r.Col4);
                 var ekhtelaf = totalBed - totalBes;
@@ -1487,6 +1541,7 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
+                // بررسی اینکه همه رکوردها بدون مانده است
                 if (writeValue == 0)
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
@@ -1501,6 +1556,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                // استایل دهی به گزارش ها
                 worksheetReport.Style.Font.FontName = "B Nazanin";
                 worksheetReport.Style.Font.FontSize = 11;
 
@@ -1531,7 +1587,7 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
 
-
+                //ذخیره فایل گزارش  
                 workbookReport.SaveAs(streamReport);
                 streamReport.Position = 0;
                 excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
@@ -1547,6 +1603,8 @@ namespace WriteBalance.Infrastructure.Services
                 throw;
             }
         }
+
+        // تولید جدول خام تراز رایان
         public async Task<MemoryStream> GenerateRawRayanTablesAsync(List<RayanFinancialRecord> financialRecords, IExcelExporter excelExporter, XLWorkbook workbook, DBRequestDto requestDB)
         {
             try
@@ -1584,6 +1642,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in financialRecords)
                 {
+                    //بررسی گزینه همه یا فقط مانده دارها
                     if (requestDB.AllOrHasMandeh == "2" && item.Mande_Bed - item.Mande_Bes == 0)
                     {
                         continue;
@@ -1618,6 +1677,7 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
 
+                //چک کردن همه رکوردها بدون مانده باشد
                 if (writeValue == 0)
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
@@ -1632,6 +1692,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                //استایل دهی به گزارش 
                 worksheet.Style.Font.FontName = "B Nazanin";
                 worksheet.Style.Font.FontSize = 11;
 
@@ -1663,7 +1724,7 @@ namespace WriteBalance.Infrastructure.Services
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Font.FontColor = XLColor.White;
 
-
+                // ذخیره
                 var stream = new MemoryStream();
                 workbook.SaveAs(stream);
                 stream.Position = 0;

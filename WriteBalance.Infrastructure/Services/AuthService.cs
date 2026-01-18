@@ -27,7 +27,7 @@ namespace WriteBalance.Infrastructure.Services
             _httpClient = httpClient;
             _settings = settings;
         }
-
+        //دریافت توکن برای احراز هویت 
         public async Task<string> GetAccessTokenAsync(APIRequestDto request, int companyId)
         {
             try

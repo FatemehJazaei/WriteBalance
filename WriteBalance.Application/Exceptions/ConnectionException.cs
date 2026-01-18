@@ -7,6 +7,7 @@ using WriteBalance.Application.DTOs;
 
 namespace WriteBalance.Application.Exceptions
 {
+    // برای ارسال خطا به اکسیر 
     public class ConnectionMessageException : Exception
     {
         public ConnectionMessage ConnectionMessage { get; }

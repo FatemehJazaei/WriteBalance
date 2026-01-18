@@ -134,7 +134,7 @@ class Program
                 await controller.InputBalanceController(config);
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) // هر خطای غیر قابل پیش بینی رخ دهد  کد 604 برمیگردد
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Unhandled exception occurred in Main() : {ex}"), $"Program:Main --typeReport:Error");
             Environment.ExitCode = 604;

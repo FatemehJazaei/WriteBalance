@@ -46,6 +46,7 @@ namespace WriteBalance.Infrastructure.Services
         public Task<MemoryStream> CreateWorkbookAsync()
             => Task.FromResult(new MemoryStream());
 
+        //ذخیره فایل اکسل  گزارش
         public async Task SaveReportAsync(MemoryStream stream, string path, string fileName)
         {
             try
@@ -88,6 +89,8 @@ namespace WriteBalance.Infrastructure.Services
             }
 
         }
+        
+        // ذخیره فایل اکسل تراز اکسیر
         public async Task SaveUploadAsync(MemoryStream stream, string path, string fileName)
         {
             try
@@ -124,6 +127,7 @@ namespace WriteBalance.Infrastructure.Services
 
         }
 
+        // ذخیره فایل تراز ارزی
         public async Task SaveUploadArziAsync(MemoryStream stream, string path, string fileName)
         {
             try

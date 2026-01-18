@@ -62,6 +62,8 @@ namespace WriteBalance.Application.Handlers
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting HandleAsync"), $"WriteBalanceHandler: HandleAsync--typeReport:Info");
 
+                // با توجه به نوع تراز عملیات انتخاب میشود 
+                // سما، همراه و کاربردی 
                 if (requestDB.TarazType == "-1")
                 {
                     var resultHamrah = false;
@@ -73,26 +75,31 @@ namespace WriteBalance.Application.Handlers
 
                     try
                     {
+                        //سما
                         requestDB.TarazType = "1";
                          resultSama = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                     }
                     catch(ConnectionMessageException ex)
                     {
+
                         resultSama = false;
                         errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در سما : " + m ));
                     }
                     try
                     {
+                        // همراه
                         requestDB.TarazType = "4";
                         resultHamrah = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                     }
                     catch (ConnectionMessageException ex)
                     {
+                        
                         resultHamrah = false;
                         errors.AddRange(ex.ConnectionMessage.Messages.Select(m => " خطا در همراه :" + m ));
                     }
                     try
                     {
+                        //کاربردی
                         requestDB.TarazType = "3";
                         resultKarbordi = await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                     }
@@ -143,6 +150,7 @@ namespace WriteBalance.Application.Handlers
                     }
                     */
 
+                    // هر سه تراز با موفقیت انجام شود
                     if (resultSama && resultHamrah && resultKarbordi )
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject("All results is true!"), $"WriteBalanceHandler: HandleAsync--typeReport:Info");
@@ -157,19 +165,20 @@ namespace WriteBalance.Application.Handlers
                             Messages = errors
                         },
                             request.FolderPath
-                            );
+                        );
                     }
 
                 }
-                else if (requestDB.TarazType == "1" || requestDB.TarazType == "3" || requestDB.TarazType == "4")
+                else if (requestDB.TarazType == "1" || requestDB.TarazType == "3" || requestDB.TarazType == "4") // یکی از تراز های سما، همراه و کاربردی
                 {
                     return await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                 }
-                else if (requestDB.TarazType == "2") 
+                else if (requestDB.TarazType == "2") // تراز رایان
                 {
                      return await Handle_Rayan_Async(request, requestDB); ;
                 }
-                else if (requestDB.TarazType == "5") {
+                else if (requestDB.TarazType == "5") // تراز پویا
+                {
                     return await Handle_Poya_Async(request, requestDB);
                 }
                 else 
@@ -194,10 +203,10 @@ namespace WriteBalance.Application.Handlers
             }
         }
 
-
+        // ساخت تراز رایان
         public async Task<bool> Handle_Rayan_Async(APIRequestDto request, DBRequestDto requestDB)
         {
-
+            //  تنظیم نام تراز + تاریخ
             var pc = new PersianCalendar();
             var now = DateTime.Now;
 
@@ -206,9 +215,6 @@ namespace WriteBalance.Application.Handlers
 
             var balanceName = request.BalanceName;
             request.BalanceName = $"{balanceName} رایان {timestamp}";
-
-            var excelStream = await _excelExporter.CreateWorkbookAsync();
-            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
              (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime ) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
@@ -219,13 +225,13 @@ namespace WriteBalance.Application.Handlers
             var financialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-            excelStream = await _balanceGenerator.GenerateRayanTablesAsync(financialRecord, _excelExporter, requestDB);
+            var excelStream = await _balanceGenerator.GenerateRayanTablesAsync(financialRecord, _excelExporter, requestDB);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateRayanTablesAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
             await _excelExporter.SaveUploadAsync(excelStream, request.FolderPath, request.FileName);
             Logger.WriteEntry(JsonConvert.SerializeObject($"SaveUploadAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-
+         
             if (requestDB.PrintOrReport == "1")
             {
                 if (isClosed)
@@ -259,11 +265,9 @@ namespace WriteBalance.Application.Handlers
             }
         }
 
-
+        // مدیریت تولید تراز پویا : ارزی و ریالی
         public async Task<bool> Handle_Poya_Async(APIRequestDto request, DBRequestDto requestDB)
         {
-            var excelStream = await _excelExporter.CreateWorkbookAsync();
-            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
@@ -347,6 +351,7 @@ namespace WriteBalance.Application.Handlers
             }
         }
 
+        // مدیریت تولید تراز سما و همراه و کاربردی
         public async Task<bool> Handle_Hamrah_Karbordi_Sama_Async(APIRequestDto request, DBRequestDto requestDB)
         {
             var pc = new PersianCalendar();
@@ -368,8 +373,6 @@ namespace WriteBalance.Application.Handlers
                     request.BalanceName = $"{balanceName} همراه {timestamp}";
                     break;
             }
-            var excelStream = await _excelExporter.CreateWorkbookAsync();
-            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateWorkbookAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
             (var CompanyId,  bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
@@ -380,7 +383,7 @@ namespace WriteBalance.Application.Handlers
             var financialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
-            excelStream = await _balanceGenerator.GenerateTablesAsync(financialRecord, _excelExporter, requestDB);
+            var excelStream = await _balanceGenerator.GenerateTablesAsync(financialRecord, _excelExporter, requestDB);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
             await _excelExporter.SaveUploadAsync(excelStream, request.FolderPath, requestDB.FileName);

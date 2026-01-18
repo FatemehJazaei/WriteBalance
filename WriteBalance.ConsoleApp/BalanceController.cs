@@ -30,9 +30,14 @@ namespace WriteBalanceConsoleApp
             try
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
-
+                // ورودی ها چک میشود
                 var InputValid = _checkInput.CheckUserInput(config);
-                List<ExceptCode> ExceptCodes = _checkInput.CheckExceptCode(config);
+                //کدهای حذفی چک میشود
+                List<ExceptCode> ExceptCodes = new List<ExceptCode>();
+                if (config["tarazType"] == "2")
+                {
+                    ExceptCodes = _checkInput.CheckExceptCode(config);
+                }
 
                 string folderName = config["of"];
                 string path = config["op"];
@@ -46,7 +51,7 @@ namespace WriteBalanceConsoleApp
                 string folderPath = Path.Combine(path, folderName);
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
-
+                //چون از سه مدیریت  ارتباط استفاده میکنیم، متغیرهای تراز های دیگر در این قسمت مقداردهی میشود
                 // sama , karbourdi, hamrah
                 if (config["tarazType"] == "1" || config["tarazType"] == "3" ||
                     config["tarazType"] == "4")
@@ -74,7 +79,7 @@ namespace WriteBalanceConsoleApp
 
                 }
 
-
+                // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها
                 var request = new APIRequestDto
                 {
                     UserNameAPI = config["UserNameAPI"],
@@ -89,7 +94,7 @@ namespace WriteBalanceConsoleApp
                     Delay = int.Parse(config["UploadTimeSpanSeconds"]),
                 };
 
-
+                // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها
                 var requestDB = new DBRequestDto
                 {
                     UserNameDB = config["UserNameDB"],
@@ -113,20 +118,21 @@ namespace WriteBalanceConsoleApp
                     ExceptCode = ExceptCodes,
                 };
 
+                // اطلاعات به  کلاس مدیریت عملیات ارسال میشود و فرایند استارت میشود
                 var result = await _writeBalanceHandler.HandleAsync(request, requestDB);
-
+                // اگر عملیات با موفقیت انجام شود، کد 0 را برمیگرداند 
                 if (result)
                 {
                     Environment.ExitCode = 0;
                 }
-                else 
+                else // اگر عملیات به صورت غیر قابل پیش بینی شکست بخورد، کد 604 را برمیگرداند 
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("Unhandled exception occurred in BalanceController - 604"), $"BalanceController--typeReport:Error");
                     Environment.ExitCode = 604;
                 }
 
             }
-            catch (ConnectionMessageException ex)
+            catch (ConnectionMessageException ex) // در صورتی که ارور شناخته شده ای رخ دهد  متن ارور ثبت میشود و کد -1 برگردانده میشود
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject($"Unhandled exception occurred in BalanceController : {ex.Message}"), $"BalanceController--typeReport:Debug");
 

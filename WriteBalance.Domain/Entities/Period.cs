@@ -10,7 +10,11 @@ namespace WriteBalance.Domain.Entities
     {
         public int Id { get; set; }
         public int CompanyId { get; set; }
+        // دوره مالی غیر فعال 1
+        // دوره مالی فعال  0
         public int StateType { get; set; }
+        //دوره مالی بسته شده true
+        //دوره مالی باز false
         public bool Closed  { get; set; }
 
         public DateTime StartDate { get; set; }

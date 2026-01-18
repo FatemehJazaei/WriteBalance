@@ -20,10 +20,18 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class CheckInput: ICheckInput
     {
+        //بررسی ورودیها 
         public (string, string) CheckDateInput(DBRequestDto requestDB, DateTime startDateTime, DateTime endDateTime)
         {
             try 
             {
+                // بررسی تاریخ شروع و پایان گزارش گیری 
+                // در صورتی که ورودی خالی باشد 
+                // از تاریخ دوره مالی خوانده شده از دیتابیس استفاده میکند 
+
+                // تاریخ شروع و پایان ورودی توسط کاربر  باید در بازه دوره مالی باشد
+                // تاریخ شروع باید از تاریخ پایان کوچک تر باشد 
+                // تاریخ ورودی توسط کاربر  تنها باید شامل 8 عدد باشد
                 string startFinancialPeriod = DateTimeExtentions.ToPersianDate(startDateTime);
                 string endFinancialPeriod = DateTimeExtentions.ToPersianDate(endDateTime);
 
@@ -62,6 +70,7 @@ namespace WriteBalance.Infrastructure.Services
                    );
 
                 }
+
 
                 if (int.Parse(requestDB.ToDateDB) < int.Parse(requestDB.FromDateDB) || int.Parse(endFinancialPeriod) < int.Parse(startFinancialPeriod))
                 {
@@ -172,6 +181,7 @@ namespace WriteBalance.Infrastructure.Services
                     }
                 }
                 */
+                // چک کردن نوع تراز
                 if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("tarazType is invalid"), $"CheckInput--typeReport:Error");
@@ -186,7 +196,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
-
+                //چک کردن نوع گزارش گیری: فقط گزارش گیری یا گزارش گیری به همراه اپلود 
                 if (config["PrintOrReport"] != "1" && config["PrintOrReport"] != "2")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("PrintOrReport is invalid"), $"CheckInput--typeReport:Error");
@@ -201,7 +211,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
-
+                // نام تراز نباید خالی باشد
                 if (config["BalanceName"] == "")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("BalanceName is empty"), $"CheckInput--typeReport:Error");
@@ -216,6 +226,7 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+                // برای تراز پویا نوع تراز پویا چک میشود
                 if (config["tarazType"] == "5")
                 {
                     if (config["tarazTypePouya"] != "1" && config["tarazTypePouya"] != "2" && config["tarazTypePouya"] != "3")
@@ -244,6 +255,10 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+        // چک کردن و جدا سازی  لیست کدهایی که تا سسطح معین باید محاسبه شوند 
+        // کدها باید به فرمت زیر وارد شوند
+        // 4131_005|4131_006
+        // کدهاباید با |  جدا شوند
         public List<ExceptCode> CheckExceptCode(Dictionary<string, string> config)
         {
             try

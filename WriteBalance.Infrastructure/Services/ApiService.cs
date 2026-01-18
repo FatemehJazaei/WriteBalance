@@ -27,7 +27,7 @@ namespace WriteBalance.Infrastructure.Services
             _httpClient = httpClient;
             _settings = settings;
         }
-
+        // بررسی یونیک بودن نام تراز در دیتابیس اکسیر
         public async Task<bool> GetVerifyUniqueNameAsync(string token, APIRequestDto request)
         {
             try
@@ -98,6 +98,7 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+        //ارسال فایل تراز به اکسیر
         public async Task<bool> PostFileAsync(string token, string file, APIRequestDto request)
         {
             try
@@ -174,6 +175,7 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+        // بررسی یونیک بودن فایل تراز ارزی
         //Arzi
         public async Task<bool> GetVerifyUniqueNameArziAsync(string token, APIRequestDto request)
         {
@@ -245,6 +247,7 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+        //ارسال فایل تراز ارزی به اکسیر
         public async Task<bool> PostFileArziAsync(string token, string file, APIRequestDto request)
         {
             try

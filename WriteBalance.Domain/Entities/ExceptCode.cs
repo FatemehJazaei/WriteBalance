@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace WriteBalance.Domain.Entities
 {
+    //برای دریافت کد های تا سطح معین گزارش گیری شود 
     public class ExceptCode
     {
         public string? Kol_Code { get; set; }
