@@ -8,23 +8,23 @@ namespace WriteBalance.Domain.Entities
 {
     public  class RayanFinancialRecord
     {
-        public string Group_code { get; set; }
-        public string Group_Title { get; set; }
+        public string? Group_code { get; set; }
+        public string? Group_Title { get; set; }
 
-        public string Kol_Code { get; set; }
-        public string Kol_Title { get; set; }
+        public string? Kol_Code { get; set; }
+        public string? Kol_Title { get; set; }
 
-        public string Moeen_Code { get; set; }
-        public string Moeen_Title { get; set; }
+        public string? Moeen_Code { get; set; }
+        public string? Moeen_Title { get; set; }
 
-        public string Tafsili_Code { get; set; }
-        public string Tafsili_Title { get; set; }
+        public string? Tafsili_Code { get; set; }
+        public string? Tafsili_Title { get; set; }
 
-        public string joze1_Code { get; set; }
-        public string joze1_Title { get; set; }
+        public string? joze1_Code { get; set; }
+        public string? joze1_Title { get; set; }
 
-        public string joze2_Code { get; set; }
-        public string joze2_Title { get; set; }
+        public string? joze2_Code { get; set; }
+        public string? joze2_Title { get; set; }
 
         public string? Code_Markaz_Hazineh { get; set; }
         public string? Code_Vahed_Amaliyat { get; set; }

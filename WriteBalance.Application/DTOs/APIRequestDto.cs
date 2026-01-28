@@ -8,17 +8,13 @@ namespace WriteBalance.Application.DTOs
 {
     public class APIRequestDto
     {
-        public string UserNameAPI { get; set; } 
-        public string PasswordAPI { get; set; } 
+        public string UserNameAPI { get; set; } = string.Empty;
+        public string PasswordAPI { get; set; } = string.Empty;
         public int PeriodId { get; set; }
-
-        public string BaseUrl { get; set; }
-        public string BalanceName { get; set; }
-        public string FileName { get; set; }
-        public string FileNameArzi { get; set; }
-        public string FileNameRial { get; set; }
-        public string FolderPath { get; set; }
+        public string BaseUrl { get; set; } = string.Empty;
+        public string BalanceName { get; set; } = string.Empty;
         public int Delay { get; set; }
+        public string tarazNameLatin { get; set; } = string.Empty;
 
     }
 }

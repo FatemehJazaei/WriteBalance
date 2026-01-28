@@ -54,7 +54,7 @@ class Program
                     Logger.WriteEntry(JsonConvert.SerializeObject($"connectionString: {connectionString}"), $"Program:Main --typeReport:Debug");
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseSqlServer(connectionString));
-
+                   
                     //دیتابیس برای سما و همراه و کاربردی 
                     services.AddDbContext<BankDbContext>(options =>
                         options.UseSqlServer(connectionString));
@@ -69,18 +69,18 @@ class Program
 
 
                     /*
-                    string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
+                   string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
 
-                   services.AddDbContext<BankDbContext>(options =>
-                       options.UseSqlServer(bankConnectionString));
+                  services.AddDbContext<BankDbContext>(options =>
+                      options.UseSqlServer(bankConnectionString));
 
-                   services.AddDbContext<RayanBankDbContext>(options =>
-                       options.UseSqlServer(bankConnectionString));
+                  services.AddDbContext<RayanBankDbContext>(options =>
+                      options.UseSqlServer(bankConnectionString));
 
-                   services.AddDbContext<PouyaBankDbContext>(options =>
-                       options.UseSqlServer(bankConnectionString));
+                  services.AddDbContext<PouyaBankDbContext>(options =>
+                      options.UseSqlServer(bankConnectionString));
 
-                    */
+                   */
 
 
                     services.Configure<AuthConfig>(
@@ -96,6 +96,8 @@ class Program
                     services.AddSingleton<IExcelExporter, ExcelExporter>();
                     services.AddScoped<ICheckInput, CheckInput>();
                     services.AddSingleton<IBalanceGenerator, BalanceGenerator>();
+                    services.AddSingleton<IPouyaBalanceGenerator, PouyaBalanceGenerator>();
+                    services.AddSingleton<IRayanBalanceGenerator, RayanBalanceGenerator>();
                     services.AddScoped<IFinancialRepository, FinancialRepository>();
                     services.AddScoped<IPeriodRepository, PeriodRepository>();
                     services.AddScoped<IFileEncoder, FileEncoder>();
@@ -122,6 +124,8 @@ class Program
                     services.AddSingleton(authConfig);
 
                     services.AddScoped<WriteBalanceHandler>();
+                    services.AddScoped<BalanceMerge>();
+                    services.AddScoped<BalanceCheck>();
                     services.AddScoped<BalanceController>();
                     services.AddSingleton<Logger>();
 

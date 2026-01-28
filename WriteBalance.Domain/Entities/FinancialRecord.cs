@@ -25,24 +25,5 @@ namespace WriteBalance.Domain.Entities
         public decimal? Remain_Last_Credit { get; set; }
         public decimal? Remain_last_Debit { get; set; }
 
-
-        /*
-        public string Kol_Code { get; set; }
-        public string Kol_Title { get; set; }
-
-        public string Moeen_Code { get; set; }
-        public string Moeen_Title { get; set; }
-
-        public Int32 Tafzil_Code { get; set; }
-        public Int32 Tafzil_Tilte { get; set; }
-
-        public string FinApplication_Title { get; set; }
-
-        public decimal Gardersh_Bed { get; set; }
-        public decimal Gardersh_Bes { get; set; }
-
-        public decimal Mande_Bed { get; set; }
-        public decimal Mande_Bes { get; set; }
-        */
     }
 }

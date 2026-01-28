@@ -9,10 +9,11 @@ using WriteBalance.Domain.Entities;
 
 namespace WriteBalance.Application.Interfaces
 {
-    public  interface IBalanceGenerator
+    public interface IBalanceGenerator
     {
         Task<MemoryStream> GenerateTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB);
-        Task<MemoryStream> GenerateRayanTablesAsync(List<RayanFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB);
-        Task GeneratePoyaTablesAsync(List<PouyaFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB);
+        Task<MemoryStream> GenerateGardeshTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB);
+        
+
     }
 }

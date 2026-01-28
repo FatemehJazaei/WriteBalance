@@ -9,6 +9,6 @@ namespace WriteBalance.Application.Interfaces
 {
     public interface IAuthService
     {
-        Task<string> GetAccessTokenAsync(APIRequestDto request, int companyId);
+        Task<string> GetAccessTokenAsync(APIRequestDto request, int companyId, string FolderPath);
     }
 }

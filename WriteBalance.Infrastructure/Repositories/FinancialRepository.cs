@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
@@ -43,12 +44,15 @@ namespace WriteBalance.Infrastructure.Repositories
             {
                 case "1":
                     tarazName = "سما";
+                    request.tarazNameLatin = "Sama";
                     break;
                 case "4":
                     tarazName = "همراه";
+                    request.tarazNameLatin = "Hamrah";
                     break;
                 case "3":
                     tarazName = "کاربردی";
+                    request.tarazNameLatin = "Karbordi";
                     break;
             }
 
@@ -110,7 +114,7 @@ namespace WriteBalance.Infrastructure.Repositories
                                 )
                                 .ToList();
 
-                    if (result == null || result.Count == 0)
+                    if (result != null && result.Count == 0)
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                         throw new ConnectionMessageException(
@@ -122,8 +126,12 @@ namespace WriteBalance.Infrastructure.Repositories
                             requestDB.FolderPath
                         );
                     }
+                    else if(result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
 
-                    return result;
+                        return result;
                 }
                 else
                 {
@@ -143,7 +151,7 @@ namespace WriteBalance.Infrastructure.Repositories
                                 )
                                 .ToList();
 
-                    if (result == null || result.Count == 0)
+                    if (result != null && result.Count == 0)
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                         throw new ConnectionMessageException(
@@ -155,12 +163,16 @@ namespace WriteBalance.Infrastructure.Repositories
                             requestDB.FolderPath
                         );
                     }
-
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
                     return result;
+
                 }
 
             }
-            catch (ConnectionMessageException ex)
+            catch (ConnectionMessageException)
             {
                 throw;
 
@@ -196,7 +208,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
             var tarazName = "رایان";
             requestDB.TarazType = "2";
-
+            request.tarazNameLatin = "Rayan";
 
             if (_rayanContext == null)
             {
@@ -234,7 +246,6 @@ namespace WriteBalance.Infrastructure.Repositories
                 string timestamp = $"{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
 
                 requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
-                request.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteRayanSPList --typeReport:Debug");
 
@@ -256,9 +267,9 @@ namespace WriteBalance.Infrastructure.Repositories
                     )
                     .ToList();
 
-                    if (result == null || result.Count == 0)
+                    if (result != null && result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -268,7 +279,10 @@ namespace WriteBalance.Infrastructure.Repositories
                             requestDB.FolderPath
                         );
                     }
-
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
                     return result;
                 }
                 else
@@ -289,9 +303,9 @@ namespace WriteBalance.Infrastructure.Repositories
                             )
                             .ToList();
 
-                    if (result == null || result.Count == 0)
+                    if (result != null && result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -301,12 +315,15 @@ namespace WriteBalance.Infrastructure.Repositories
                             requestDB.FolderPath
                         );
                     }
-
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
                     return result;
                 }
 
             }
-            catch (ConnectionMessageException ex)
+            catch (ConnectionMessageException)
             {
                 throw;
 
@@ -332,6 +349,7 @@ namespace WriteBalance.Infrastructure.Repositories
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecutePoyaSPList."), $"FinancialRepository:ExecutePoyaSPList--typeReport:Info");
             var tarazName = "پویا";
+            request.tarazNameLatin = "Pouya";
 
             if (_pouyaContext == null)
             {
@@ -373,11 +391,6 @@ namespace WriteBalance.Infrastructure.Repositories
                 string timestamp = $"{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
 
                 requestDB.FileName = $"تراز  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
-                requestDB.FileNameRial = $"تراز ریالی  {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
-                requestDB.FileNameArzi = $"تراز ارزی   {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
-                request.FileName = requestDB.FileName;
-                request.FileNameRial = requestDB.FileNameRial;
-                request.FileNameArzi = requestDB.FileNameArzi;
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
 
@@ -397,10 +410,9 @@ namespace WriteBalance.Infrastructure.Repositories
                                 )
                                 .ToList();
 
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
-                    if (result == null || result.Count == 0)
+                    if (result != null && result.Count == 0)
                     {
-                        
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -410,7 +422,10 @@ namespace WriteBalance.Infrastructure.Repositories
                             requestDB.FolderPath
                         );
                     }
-
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
                     return result;
                 }
                 else
@@ -423,10 +438,9 @@ namespace WriteBalance.Infrastructure.Repositories
                                 .ToList();
 
                     Logger.WriteEntry(JsonConvert.SerializeObject($"sql = {sql} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
-                    if (result == null || result.Count == 0)
+                    if (result != null && result.Count == 0)
                     {
-                       
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -436,12 +450,15 @@ namespace WriteBalance.Infrastructure.Repositories
                             requestDB.FolderPath
                         );
                     }
-
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
                     return result;
                 }
 
             }
-            catch (ConnectionMessageException ex)
+            catch (ConnectionMessageException)
             {
                 throw;
 
@@ -460,14 +477,6 @@ namespace WriteBalance.Infrastructure.Repositories
                 );
 
             }
-
-            /*
-            var result = _context.FinancialBalance
-                .FromSqlRaw(
-                    "EXEC dbo.MainProc"
-                )
-                .ToList();
-            */
         }
 
     }

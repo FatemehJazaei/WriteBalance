@@ -9,6 +9,6 @@ namespace WriteBalance.Application.Interfaces
 {
     public interface IPeriodRepository
     {
-        Task<(int, bool, DateTime, DateTime)> GetTimeAsync(APIRequestDto request);
+        Task<(int, bool, DateTime, DateTime)> GetTimeAsync(APIRequestDto request, string FolderPath);
     }
 }

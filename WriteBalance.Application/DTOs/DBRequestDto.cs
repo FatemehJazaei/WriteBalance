@@ -4,24 +4,24 @@ namespace WriteBalance.Application.DTOs
 {
     public class DBRequestDto
     {
-        public string UserNameDB { get; set; }
-        public string PtokenDB { get; set; }
-        public string ObjecttokenDB { get; set; }
-        public string FromDateDB { get; set; }
-        public string ToDateDB { get; set; }
-        public string TarazType { get; set; }
-        public string TarazTypePouya { get; set; }
-        public string AllOrHasMandeh { get; set; }
-        public string OrginalClientAddressDB { get; set; }
-        public string FromVoucherNum { get; set; }
-        public string ToVoucherNum { get; set; }
-        public string ExceptVoucherNum { get; set; }
-        public string OnlyVoucherNum { get; set; }
-        public string PrintOrReport { get; set; }
-        public string FileName { get; set; }
-        public string FileNameRial { get; set; }
-        public string FileNameArzi { get; set; }
-        public string FolderPath { get; set; }
-        public List<ExceptCode> ExceptCode { get; set; }
+        public string UserNameDB { get; set; } = string.Empty;
+        public string PtokenDB { get; set; } = string.Empty;
+        public string ObjecttokenDB { get; set; } = string.Empty;
+        public string FromDateDB { get; set; } = string.Empty;
+        public string ToDateDB { get; set; } = string.Empty;
+        public string TarazType { get; set; } = string.Empty;
+        public string TarazTypePouya { get; set; } = string.Empty;
+        public string AllOrHasMandeh { get; set; } = string.Empty;
+        public string GardeshOrMandeh { get; set; } = string.Empty;
+        public string OrginalClientAddressDB { get; set; } = string.Empty;
+        public string FromVoucherNum { get; set; } = string.Empty;
+        public string ToVoucherNum { get; set; } = string.Empty;
+        public string ExceptVoucherNum { get; set; } = string.Empty;
+        public string OnlyVoucherNum { get; set; } = string.Empty;
+        public string PrintOrReport { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string FolderPath { get; set; } = string.Empty;
+        public List<ExceptCode> ExceptCode { get; set; } = new List<ExceptCode>();
+
     }
 }

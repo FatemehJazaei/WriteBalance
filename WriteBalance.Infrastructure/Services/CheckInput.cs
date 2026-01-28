@@ -87,6 +87,8 @@ namespace WriteBalance.Infrastructure.Services
                     );
                 }
 
+
+
                 if (int.Parse(requestDB.FromDateDB) < int.Parse(startFinancialPeriod) || int.Parse(endFinancialPeriod) < int.Parse(requestDB.ToDateDB))
                 {
 
@@ -106,7 +108,7 @@ namespace WriteBalance.Infrastructure.Services
 
                 return (requestDB.FromDateDB, requestDB.ToDateDB);
             }
-            catch (ConnectionMessageException ex)
+            catch (ConnectionMessageException)
             {
                 throw;
             }
@@ -185,6 +187,24 @@ namespace WriteBalance.Infrastructure.Services
                 if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("tarazType is invalid"), $"CheckInput--typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $" ورودی نامعتبر " }
+                        },
+                    Path.Combine(config["op"], config["of"])
+                    );
+                }
+
+                //چک کردن تراز از نوع گردش یا از نوع مانده
+                // مانده 1 
+                // گردش 2
+                // گردش و مانده 3 
+                if (config["GardeshOrMandeh"] != "1" && config["GardeshOrMandeh"] != "2")
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject("GardeshOrMandeh is invalid"), $"CheckInput--typeReport:Error");
 
                     throw new ConnectionMessageException(
                         new ConnectionMessage

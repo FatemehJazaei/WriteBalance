@@ -52,7 +52,7 @@ namespace WriteBalanceConsoleApp
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
                 //چون از سه مدیریت  ارتباط استفاده میکنیم، متغیرهای تراز های دیگر در این قسمت مقداردهی میشود
-                // sama , karbourdi, hamrah
+                // sama , karbourdi, hamrah 
                 if (config["tarazType"] == "1" || config["tarazType"] == "3" ||
                     config["tarazType"] == "4")
                 {
@@ -87,10 +87,6 @@ namespace WriteBalanceConsoleApp
                     PeriodId = int.Parse(config["pi"]),
                     BaseUrl = config["AddressAPI"],
                     BalanceName = config["BalanceName"],
-                    FolderPath = folderPath,
-                    FileName = "",
-                    FileNameArzi = "",
-                    FileNameRial = "",
                     Delay = int.Parse(config["UploadTimeSpanSeconds"]),
                 };
 
@@ -104,6 +100,7 @@ namespace WriteBalanceConsoleApp
                     TarazType = config["tarazType"],
                     TarazTypePouya =  config["tarazTypePouya"],
                     AllOrHasMandeh = config["AllOrHasMandeh"],
+                    GardeshOrMandeh = config["GardeshOrMandeh"],
                     FromDateDB = config["FromDateDB"],
                     ToDateDB = config["ToDateDB"],
                     FromVoucherNum = config["FromVoucherNum"],
@@ -113,8 +110,6 @@ namespace WriteBalanceConsoleApp
                     PrintOrReport = config["PrintOrReport"],
                     FolderPath = folderPath,
                     FileName = "",
-                    FileNameRial = "",
-                    FileNameArzi = "",
                     ExceptCode = ExceptCodes,
                 };
 

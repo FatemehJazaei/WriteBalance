@@ -8,8 +8,8 @@ namespace WriteBalance.Domain.Entities
 {
     public class ExcelRow
     {
-        public string Col1 { get; set; }
-        public string Col2 { get; set; }
+        public string Col1 { get; set; } = string.Empty;
+        public string Col2 { get; set; } = string.Empty;
         public decimal Col3 { get; set; }
         public decimal Col4 { get; set; }
         public decimal? Col5 { get; set; }

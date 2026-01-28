@@ -28,7 +28,7 @@ namespace WriteBalance.Infrastructure.Services
             _settings = settings;
         }
         //دریافت توکن برای احراز هویت 
-        public async Task<string> GetAccessTokenAsync(APIRequestDto request, int companyId)
+        public async Task<string> GetAccessTokenAsync(APIRequestDto request, int companyId, string FolderPath)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace WriteBalance.Infrastructure.Services
                     MessageType = MessageType.Error,
                     Messages = new List<string> { "احراز هویت اکسیر ناموفق  ." }
                 },
-                request.FolderPath
+                FolderPath
                 );
             }
 

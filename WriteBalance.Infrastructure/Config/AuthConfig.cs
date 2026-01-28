@@ -8,6 +8,6 @@ namespace WriteBalance.Infrastructure.Config
 {
     public class AuthConfig
     {
-        public string AuthEndpointUrl { get; set; }
+        public string AuthEndpointUrl { get; set; } = string.Empty;
     }
 }

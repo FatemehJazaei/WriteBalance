@@ -19,12 +19,14 @@ namespace WriteBalance.Infrastructure.Services
     {
         private  XLWorkbook _workbookUpload;
         private  XLWorkbook _workbookReport;
+        private XLWorkbook _workbookGardesh;
         private  XLWorkbook _workbookUploadArzi;
 
         public ExcelExporter()
         {
             _workbookUpload = new XLWorkbook();
             _workbookReport = new XLWorkbook();
+            _workbookGardesh = new XLWorkbook();
             _workbookUploadArzi = new XLWorkbook();
         }
 
@@ -38,13 +40,16 @@ namespace WriteBalance.Infrastructure.Services
             _workbookUpload = new XLWorkbook();
             return _workbookUpload;
         }
+        public XLWorkbook GetWorkbookGardesh()
+        {
+            _workbookGardesh = new XLWorkbook();
+            return _workbookGardesh;
+        }
         public XLWorkbook GetWorkbookUploadArzi()
         {
             _workbookUploadArzi = new XLWorkbook(); 
             return _workbookUploadArzi;
         }
-        public Task<MemoryStream> CreateWorkbookAsync()
-            => Task.FromResult(new MemoryStream());
 
         //ذخیره فایل اکسل  گزارش
         public async Task SaveReportAsync(MemoryStream stream, string path, string fileName)
@@ -158,6 +163,51 @@ namespace WriteBalance.Infrastructure.Services
                         _workbookUploadArzi.Worksheets.Delete("Data");
                     }
                     _workbookUploadArzi.Dispose();
+                }
+            }
+
+        }
+
+        //ذخیره فایل تراز گردش
+        //ذخیره فایل اکسل  گزارش
+        public async Task SaveGardeshAsync(MemoryStream stream, string path, string fileName)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SaveGardeshAsync"), $"ExcelExporter: SaveGardeshAsync --typeReport:Info");
+                string folderPath = Path.Combine(path, fileName);
+                _workbookGardesh.SaveAs(folderPath);
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveGardeshAsync --typeReport:Error");
+                throw;
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.SetLength(0);
+                    stream.Position = 0;
+                    stream.Dispose();
+                }
+
+                if (_workbookGardesh != null)
+                {
+                    if (_workbookGardesh.Worksheets.Contains("تراز خام"))
+                    {
+                        _workbookGardesh.Worksheets.Delete("تراز خام");
+                    }
+                    if (_workbookGardesh.Worksheets.Contains("تراز اکسیر ارزی"))
+                    {
+                        _workbookGardesh.Worksheets.Delete("تراز اکسیر ارزی");
+                    }
+                    if (_workbookGardesh.Worksheets.Contains("تراز اکسیر ریالی"))
+                    {
+                        _workbookGardesh.Worksheets.Delete("تراز اکسیر ریالی");
+                    }
+                    _workbookGardesh.Dispose();
                 }
             }
 

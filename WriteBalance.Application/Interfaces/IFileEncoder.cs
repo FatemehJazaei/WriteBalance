@@ -8,6 +8,6 @@ namespace WriteBalance.Application.Interfaces
 {
     public interface IFileEncoder
     {
-        Task<string> EncodeFileToBase64Async(string filePath, string fileName);
+        Task<string> EncodeFileToBase64Async(MemoryStream excelStream, string filePath, string fileName);
     }
 }

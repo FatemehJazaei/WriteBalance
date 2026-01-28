@@ -13,7 +13,7 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class ConfigModel
     {
-        public String UploadTimeSpanSeconds { get; set; }
+        public String UploadTimeSpanSeconds { get; set; } = String.Empty;
     }
     public static class InfoFileReader
     {
@@ -80,22 +80,28 @@ namespace WriteBalance.Infrastructure.Services
                 config["OnlyVoucherNum"] = "";
 
                 /*
+
                 config["AddressServerBank"] = "Exir-203";
                 //config["AddressServerBank"] = "DESKTOP-262P9P4";
                 config["DataBaseNameBank"] = "Database1";
                 config["op"] = "E:\\Projects";
                 //config["op"] = "D:\\Refah";
-
                 config["of"] = "WriteBalance";
                 config["pi"] = "5046";
-                config["tarazType"] = "2";
+                // sama , karbourdi, hamrah  1
+                // rayan 2
+                // pouya 5
+                config["tarazType"] = "5";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
-                config["PrintOrReport"] = "2";
-                config["BalanceName"] = "BalanceTest8";
+                config["PrintOrReport"] = "1";
+                config["BalanceName"] = "شش ماهه";
                 config["FromDateDB"] = "14040101";
                 config["ToDateDB"] = "14040424";
-                config["ExceptCode"] = "4131_002|4131_004";
+               // config["ExceptCode"] = "4131_002|4131_004";
+                config["ExceptCode"] = "";
+                config["GardeshOrMandeh"] = "2";
+
                 */
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");

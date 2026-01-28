@@ -14,29 +14,13 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class FileEncoder : IFileEncoder
     {
-        public async Task<string> EncodeFileToBase64Async(string folderPath, string fileName)
+        public async Task<string> EncodeFileToBase64Async(MemoryStream excelStream, string folderPath, string fileName)
         {
             try
             {
-                string filePath = Path.Combine(folderPath, fileName);
+
                 string mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-                if (string.IsNullOrWhiteSpace(filePath))
-                {
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"File is null or empty in path : {filePath}"), $"FileEncoder:EncodeFileToBase64Async --typeReport:Error");
-                    throw new ArgumentException("File path cannot be null or empty.", nameof(filePath));
-                }
-
-
-                if (!File.Exists(filePath))
-                {
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"File not found in path : {filePath}"), $"FileEncoder:EncodeFileToBase64Async --typeReport:Error");
-                    throw new FileNotFoundException("File not found.", filePath);
-                }
-
-
-                var bytes = await File.ReadAllBytesAsync(filePath);
-                var base64 = Convert.ToBase64String(bytes);
+                var base64 = Convert.ToBase64String(excelStream.ToArray());
 
                 return $"data:{mimeType};base64,{base64}";
             }
