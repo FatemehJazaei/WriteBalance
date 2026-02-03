@@ -220,28 +220,8 @@ namespace WriteBalance.Infrastructure.Services
                     .Where(x =>(x.Kol_Code != null && x.Kol_Code[0] != '6'))
                     .Select(x =>
                     {
-                        var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}_{x.Tafsili_Code[^4..]}";
-                        var title = $"{x.Kol_Title}_{x.Moeen_Title}_{x.Tafsili_Title}";
-
-                        if (x.joze1_Code.Length == 17)
-                        {
-                            code += $"_{x.joze1_Code[^6..]}";
-                            title += $"_{x.joze1_Title}";
-                        }
-                        else
-                        {
-                            code += "_0";
-                        }
-
-                        if (x.joze2_Code.Length == 21)
-                        {
-                            code += $"_{x.joze2_Code[^4..]}";
-                            title += $"_{x.joze2_Title}";
-                        }
-                        else
-                        {
-                            code += "_0";
-                        }
+                        var code = $"{x.Kol_Code}_{x.Moeen_Code[^3..]}";
+                        var title = $"{x.Kol_Title}_{x.Moeen_Title}";
 
                         return new ExcelRow
                         {
@@ -270,26 +250,18 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in mergedRows)
                 {
-                    // AllOrHasMandeh : مقدار 1 همه رکورد ها را برمیگرداند و مقدار 2 فقط مانده دار ها 
-                    if (requestDB.AllOrHasMandeh == "2" && item.Col5 - item.Col6 == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        worksheetUpload.Cell(row, 1).Value = item.Col1;
-                        worksheetUpload.Cell(row, 2).Value = item.Col2;
-                        worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
-                        worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
 
-                        worksheetReport.Cell(row, 1).Value = item.Col1;
-                        worksheetReport.Cell(row, 2).Value = item.Col2;
-                        worksheetReport.Cell(row, 3).Value = item.Col5;
-                        worksheetReport.Cell(row, 4).Value = item.Col6;
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col5;
+                    worksheetReport.Cell(row, 4).Value = item.Col6;
 
-                        row++;
-                        writeValue++;
-                    }
+                    row++;
+                    writeValue++;
                 }
 
                 // بررسی اینکه همه رکوردها بدون مانده است
@@ -382,7 +354,7 @@ namespace WriteBalance.Infrastructure.Services
                 foreach (var item in financialRecords)
                 {
                     //بررسی گزینه همه یا فقط مانده دارها
-                    if (requestDB.AllOrHasMandeh == "2" && ((item.Mande_Bed - item.Mande_Bes == 0 && requestDB.GardeshOrMandeh == "1") || (item.bedehkar - item.bestankar == 0 && requestDB.GardeshOrMandeh == "2")))
+                    if (requestDB.AllOrHasMandeh == "2" && item.Mande_Bed - item.Mande_Bes == 0 && requestDB.GardeshOrMandeh == "1")
                     {
                         
                         continue;

@@ -140,6 +140,7 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
+                Logger.WriteEntry(JsonConvert.SerializeObject($"json : {json}"), $"ApiService: PostFileAsync--typeReport:Info");
 
                 using var doc = JsonDocument.Parse(json);
    

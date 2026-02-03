@@ -143,6 +143,12 @@ namespace WriteBalance.Infrastructure.Services
                         Col4 = x.Mande_Bes_arzi ?? 0,
                     }).ToList();
 
+                //یونیک کردن کدها
+                var mergedRowsArzi = _balanceMerge.MergeDuplicateRows(rowsArzi);
+                // بررسی بالانس بودن  تراز 
+                mergedRowsArzi = await _balanceCheck.checkBalance(mergedRowsArzi, excelExporter, requestDB, streamReport);
+
+
                 // شروع فرایند تولید اکسل ارزی
                 var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");
                 var worksheetReportArzi = workbookReport.Worksheets.Add("تراز اکسیر ارزی");
@@ -152,7 +158,7 @@ namespace WriteBalance.Infrastructure.Services
                 writeValue = 0;
 
                 //فرایند نوشتن رکوردها
-                foreach (var item in mergedRows)
+                foreach (var item in mergedRowsArzi)
                 {
                     // چک کردن گزینه همه یا فقط مانده دارها 
                     if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
@@ -257,7 +263,7 @@ namespace WriteBalance.Infrastructure.Services
                 }).ToList();
 
                 //یونیک کردن کدها
-                var mergedRows = _balanceMerge.MergeDuplicateGardeshRows(rowsRial);
+                var mergedRows = _balanceMerge.MergeDuplicateGardeshPouyaRows(rowsRial);
                 // بررسی بالانس بودن  تراز 
                 mergedRows = await _balanceCheck.checkGardeshBalance(mergedRows, excelExporter, requestDB, streamReport);
 
@@ -271,26 +277,18 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in mergedRows)
                 {
-                    //بررسی گزینه همه یا مانده دارها
-                    if (requestDB.AllOrHasMandeh == "2" && item.Col5 - item.Col6 == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        worksheetUpload.Cell(row, 1).Value = item.Col1;
-                        worksheetUpload.Cell(row, 2).Value = item.Col2;
-                        worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
-                        worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
 
-                        worksheetReport.Cell(row, 1).Value = item.Col1;
-                        worksheetReport.Cell(row, 2).Value = item.Col2;
-                        worksheetReport.Cell(row, 3).Value = item.Col5;
-                        worksheetReport.Cell(row, 4).Value = item.Col6; ;
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col5;
+                    worksheetReport.Cell(row, 4).Value = item.Col6; ;
 
-                        row++;
-                        writeValue++;
-                    }
+                    row++;
+                    writeValue++;
                 }
 
                 //بررسی اینکه همه رکورد ها مانده دار است یا نه 
@@ -345,6 +343,12 @@ namespace WriteBalance.Infrastructure.Services
                         Col6 = x.Gardersh_Bes_arzi ?? 0,
                     }).ToList();
 
+
+                //یونیک کردن کدها
+                var mergedRowsArzi = _balanceMerge.MergeDuplicateGardeshPouyaRows(rowsArzi);
+                // بررسی بالانس بودن  تراز 
+                mergedRowsArzi = await _balanceCheck.checkGardeshBalance(mergedRowsArzi, excelExporter, requestDB, streamReport);
+
                 // شروع فرایند تولید اکسل ارزی
                 var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");
                 var worksheetReportArzi = workbookReport.Worksheets.Add("تراز اکسیر ارزی");
@@ -354,28 +358,20 @@ namespace WriteBalance.Infrastructure.Services
                 writeValue = 0;
 
                 //فرایند نوشتن رکوردها
-                foreach (var item in mergedRows)
+                foreach (var item in mergedRowsArzi)
                 {
-                    // چک کردن گزینه همه یا فقط مانده دارها 
-                    if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        worksheetUploadArzi.Cell(row, 1).Value = item.Col1;
-                        worksheetUploadArzi.Cell(row, 2).Value = item.Col2;
-                        worksheetUploadArzi.Cell(row, 3).Value = item.Col5.ToString();
-                        worksheetUploadArzi.Cell(row, 4).Value = item.Col6.ToString();
+                    worksheetUploadArzi.Cell(row, 1).Value = item.Col1;
+                    worksheetUploadArzi.Cell(row, 2).Value = item.Col2;
+                    worksheetUploadArzi.Cell(row, 3).Value = item.Col5.ToString();
+                    worksheetUploadArzi.Cell(row, 4).Value = item.Col6.ToString();
 
-                        worksheetReportArzi.Cell(row, 1).Value = item.Col1;
-                        worksheetReportArzi.Cell(row, 2).Value = item.Col2;
-                        worksheetReportArzi.Cell(row, 3).Value = item.Col5;
-                        worksheetReportArzi.Cell(row, 4).Value = item.Col6; 
+                    worksheetReportArzi.Cell(row, 1).Value = item.Col1;
+                    worksheetReportArzi.Cell(row, 2).Value = item.Col2;
+                    worksheetReportArzi.Cell(row, 3).Value = item.Col5;
+                    worksheetReportArzi.Cell(row, 4).Value = item.Col6;
 
-                        row++;
-                        writeValue++;
-                    }
+                    row++;
+                    writeValue++;
                 }
                 // بررسی حالتی که همه رکورد ها بدون مانده است
                 if (writeValue == 0)
@@ -470,7 +466,7 @@ namespace WriteBalance.Infrastructure.Services
                 foreach (var item in financialRecords)
                 {
                     // بررسی گزینه همه یا فقط مانده دار
-                    if (requestDB.AllOrHasMandeh == "2" && ((item.Mande_Bed_arzi - item.Mande_Bes_arzi == 0 && requestDB.GardeshOrMandeh == "1") || (item.Gardersh_Bed_arzi - item.Gardersh_Bes_arzi == 0 && requestDB.GardeshOrMandeh == "2")) )
+                    if (requestDB.AllOrHasMandeh == "2" && item.Mande_Bed_arzi - item.Mande_Bes_arzi == 0 && requestDB.GardeshOrMandeh == "1")
                     {
                         continue;
                     }
