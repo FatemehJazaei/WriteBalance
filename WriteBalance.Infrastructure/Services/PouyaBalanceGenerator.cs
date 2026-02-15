@@ -44,15 +44,31 @@ namespace WriteBalance.Infrastructure.Services
 
                 // فرآیند تولید تراز ریالی 
                 //حذف کد 6
-                var rowsRial = financialRecords
-                .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
-                .Select(x => new ExcelRow
+                List<ExcelRow> rowsRial = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
                 {
-                    Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
-                    Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
-                    Col3 = x.Mande_Bed_rial ?? 0,
-                    Col4 = x.Mande_Bes_rial ?? 0,
-                }).ToList();
+                    rowsRial = financialRecords
+                    .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                    .Select(x => new ExcelRow
+                    {
+                        Col1 = $"{x.Kol_Code}",
+                        Col2 = $"{x.Kol_Title}",
+                        Col3 = x.Mande_Bed_rial ?? 0,
+                        Col4 = x.Mande_Bes_rial ?? 0,
+                    }).ToList();
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                    rowsRial = financialRecords
+                    .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                    .Select(x => new ExcelRow
+                    {
+                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
+                        Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
+                        Col3 = x.Mande_Bed_rial ?? 0,
+                        Col4 = x.Mande_Bes_rial ?? 0,
+                    }).ToList();
+                }
 
                 //یونیک کردن کدها
                 var mergedRows = _balanceMerge.MergeDuplicateRows(rowsRial);
@@ -131,17 +147,33 @@ namespace WriteBalance.Infrastructure.Services
                 var streamUpload = new MemoryStream();
                 workbookUpload.SaveAs(streamUpload);
                 streamUpload.Position = 0;
-                
 
-                var rowsArzi = financialRecords
-                    .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
-                    .Select(x => new ExcelRow
-                    {
-                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
-                        Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
-                        Col3 = x.Mande_Bed_arzi ?? 0,
-                        Col4 = x.Mande_Bes_arzi ?? 0,
-                    }).ToList();
+                // تراز ارزی
+                List<ExcelRow> rowsArzi = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
+                {
+                    rowsArzi = financialRecords
+                        .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}",
+                            Col2 = $"{x.Kol_Title}",
+                            Col3 = x.Mande_Bed_arzi ?? 0,
+                            Col4 = x.Mande_Bes_arzi ?? 0,
+                        }).ToList();
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                    rowsArzi = financialRecords
+                        .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
+                            Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
+                            Col3 = x.Mande_Bed_arzi ?? 0,
+                            Col4 = x.Mande_Bes_arzi ?? 0,
+                        }).ToList();
+                }
 
                 // شروع فرایند تولید اکسل ارزی
                 var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");
@@ -244,17 +276,35 @@ namespace WriteBalance.Infrastructure.Services
 
                 // فرآیند تولید تراز ریالی 
                 //حذف کد 6
-                var rowsRial = financialRecords
-                .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
-                .Select(x => new ExcelRow
+                List<ExcelRow> rowsRial = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
                 {
-                    Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
-                    Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
-                    Col3 = x.Mande_Bed_rial ?? 0,
-                    Col4 = x.Mande_Bes_rial ?? 0,
-                    Col5 = x.Gardersh_Bed_rial ?? 0,
-                    Col6 = x.Gardersh_Bes_rial ?? 0,
-                }).ToList();
+                    rowsRial = financialRecords
+                    .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                    .Select(x => new ExcelRow
+                    {
+                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
+                        Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
+                        Col3 = x.Mande_Bed_rial ?? 0,
+                        Col4 = x.Mande_Bes_rial ?? 0,
+                        Col5 = x.Gardersh_Bed_rial ?? 0,
+                        Col6 = x.Gardersh_Bes_rial ?? 0,
+                    }).ToList();
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                    rowsRial = financialRecords
+                    .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                    .Select(x => new ExcelRow
+                    {
+                        Col1 = $"{x.Kol_Code}",
+                        Col2 = $"{x.Kol_Title}",
+                        Col3 = x.Mande_Bed_rial ?? 0,
+                        Col4 = x.Mande_Bes_rial ?? 0,
+                        Col5 = x.Gardersh_Bed_rial ?? 0,
+                        Col6 = x.Gardersh_Bes_rial ?? 0,
+                    }).ToList();
+                }
 
                 //یونیک کردن کدها
                 var mergedRows = _balanceMerge.MergeDuplicateGardeshRows(rowsRial);
@@ -333,7 +383,25 @@ namespace WriteBalance.Infrastructure.Services
                 workbookUpload.SaveAs(streamUpload);
                 streamUpload.Position = 0;
 
-                var rowsArzi = financialRecords
+                // ساخت لیست برای تراز ارزی
+                List<ExcelRow> rowsArzi = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
+                {
+                    rowsArzi = financialRecords
+                    .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
+                    .Select(x => new ExcelRow
+                    {
+                        Col1 = $"{x.Kol_Code}",
+                        Col2 = $"{x.Kol_Title}",
+                        Col3 = x.Mande_Bed_arzi ?? 0,
+                        Col4 = x.Mande_Bes_arzi ?? 0,
+                        Col5 = x.Gardersh_Bed_arzi ?? 0,
+                        Col6 = x.Gardersh_Bes_arzi ?? 0,
+                    }).ToList();
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                    rowsRial = financialRecords
                     .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
                     .Select(x => new ExcelRow
                     {
@@ -344,6 +412,7 @@ namespace WriteBalance.Infrastructure.Services
                         Col5 = x.Gardersh_Bed_arzi ?? 0,
                         Col6 = x.Gardersh_Bes_arzi ?? 0,
                     }).ToList();
+                }
 
                 // شروع فرایند تولید اکسل ارزی
                 var worksheetUploadArzi = workbookUploadArzi.Worksheets.Add("Data");

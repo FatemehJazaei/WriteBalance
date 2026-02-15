@@ -79,7 +79,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
 
-                /*
+
 
                 config["AddressServerBank"] = "Exir-203";
                 //config["AddressServerBank"] = "DESKTOP-262P9P4";
@@ -88,21 +88,25 @@ namespace WriteBalance.Infrastructure.Services
                 //config["op"] = "D:\\Refah";
                 config["of"] = "WriteBalance";
                 config["pi"] = "5046";
-                // sama , karbourdi, hamrah  1
+                // sama, karbourdi, hamrah  1
                 // rayan 2
                 // pouya 5
-                config["tarazType"] = "5";
+                config["tarazType"] = "2";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";
-                config["BalanceName"] = "شش ماهه";
+                config["BalanceName"] = " 2شش ماهه";
                 config["FromDateDB"] = "14040101";
                 config["ToDateDB"] = "14040424";
                // config["ExceptCode"] = "4131_002|4131_004";
                 config["ExceptCode"] = "";
                 config["GardeshOrMandeh"] = "2";
+                // TarazKol 1 
+                // TarazMoeen 2
+                // default 3
+                config["TarazKolOrTarazMoeen"] = "1";
 
-                */
+
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
                 filePath = Path.GetFullPath(filePath);

@@ -44,18 +44,37 @@ namespace WriteBalance.Infrastructure.Services
                 var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
-                // فیلتر کردن کد کل 6
-                var rows = financialRecords
-                    .Where(x => ( x.Kol_Code[0] != '6'))
-                    .Select(x => new ExcelRow
-                    {
-                        Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
-                        Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
-                        Col3 = x.Remain_First_Debit ?? decimal.Zero,
-                        Col4 = x.Remain_First_Credit ?? decimal.Zero,
-                        Col5 = x.Flow_Debit ?? decimal.Zero,
-                        Col6 = x.Flow_Credit ?? decimal.Zero,
-                    }).ToList();
+                List<ExcelRow> rows = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
+                {
+                    // فیلتر کردن کد کل 6
+                    rows = financialRecords
+                        .Where(x => (x.Kol_Code[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}",
+                            Col2 = $"{x.Kol_Title}",
+                            Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                            Col4 = x.Remain_First_Credit ?? decimal.Zero,
+                            Col5 = x.Flow_Debit ?? decimal.Zero,
+                            Col6 = x.Flow_Credit ?? decimal.Zero,
+                        }).ToList();
+
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                    rows = financialRecords
+                        .Where(x => (x.Kol_Code[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
+                            Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
+                            Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                            Col4 = x.Remain_First_Credit ?? decimal.Zero,
+                            Col5 = x.Flow_Debit ?? decimal.Zero,
+                            Col6 = x.Flow_Credit ?? decimal.Zero,
+                        }).ToList();
+                }
 
                 // محاسبه مانده برای هر رکورد
                 var rowsEditRemain = await Calculate_New_rows(rows);
@@ -170,18 +189,38 @@ namespace WriteBalance.Infrastructure.Services
                 var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
                 streamReport.Position = 0;
 
-                // فیلتر کردن کد کل 6
-                var rows = financialRecords
-                    .Where(x => ( x.Kol_Code[0] != '6'))
-                    .Select(x => new ExcelRow
-                    {
-                        Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
-                        Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
-                        Col3 = x.Remain_First_Debit ?? decimal.Zero,
-                        Col4 = x.Remain_First_Credit ?? decimal.Zero,
-                        Col5 = x.Flow_Debit ?? decimal.Zero,
-                        Col6 = x.Flow_Credit ?? decimal.Zero,
-                    }).ToList();
+
+                List<ExcelRow> rows = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
+                {
+                    // فیلتر کردن کد کل 6
+                    rows = financialRecords
+                        .Where(x => (x.Kol_Code[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}",
+                            Col2 = $"{x.Kol_Title}",
+                            Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                            Col4 = x.Remain_First_Credit ?? decimal.Zero,
+                            Col5 = x.Flow_Debit ?? decimal.Zero,
+                            Col6 = x.Flow_Credit ?? decimal.Zero,
+                        }).ToList();
+
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                    rows = financialRecords
+                        .Where(x => (x.Kol_Code[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
+                            Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
+                            Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                            Col4 = x.Remain_First_Credit ?? decimal.Zero,
+                            Col5 = x.Flow_Debit ?? decimal.Zero,
+                            Col6 = x.Flow_Credit ?? decimal.Zero,
+                        }).ToList();
+                }
 
                 // یونیک کردن رکوردها بر اساس کد
                 var mergedRows = _balanceMerge.MergeDuplicateGardeshRows(rows);

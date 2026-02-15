@@ -108,6 +108,7 @@ namespace WriteBalanceConsoleApp
                     ExceptVoucherNum = config["ExceptVoucherNum"],
                     OnlyVoucherNum = config["OnlyVoucherNum"],
                     PrintOrReport = config["PrintOrReport"],
+                    TarazKolOrTarazMoeen = config["TarazKolOrTarazMoeen"],
                     FolderPath = folderPath,
                     FileName = "",
                     ExceptCode = ExceptCodes,

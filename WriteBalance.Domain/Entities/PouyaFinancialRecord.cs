@@ -15,6 +15,7 @@ namespace WriteBalance.Domain.Entities
         public string? Hesab_Code { get; set; } 
         public int? Kol_Code { get; set; }
         public int? Arz_Code { get; set; }
+
         // int in bank refah : Moeen_Code , Moeen
         public long? Moeen_Code { get; set; } 
         public long? Moeen { get; set; } 
