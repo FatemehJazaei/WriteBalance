@@ -240,29 +240,19 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in mergedRows)
                 {
-                    // بررسی گزینه انتخاب شده : همه رکورد ها یا فقط مانده دار ها 
-                    // AllOrHasMandeh
-                    // همه 1
-                    // فقط مانده داره ها 2
-                    if (requestDB.AllOrHasMandeh == "2" && item.Col5 - item.Col6 == 0)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        worksheetUpload.Cell(row, 1).Value = item.Col1;
-                        worksheetUpload.Cell(row, 2).Value = item.Col2;
-                        worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
-                        worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
 
-                        worksheetReport.Cell(row, 1).Value = item.Col1;
-                        worksheetReport.Cell(row, 2).Value = item.Col2;
-                        worksheetReport.Cell(row, 3).Value = item.Col5;
-                        worksheetReport.Cell(row, 4).Value = item.Col6;
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
 
-                        row++;
-                        writeValue++;
-                    }
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col5;
+                    worksheetReport.Cell(row, 4).Value = item.Col6;
+
+                    row++;
+                    writeValue++;
 
                 }
 
@@ -352,7 +342,7 @@ namespace WriteBalance.Infrastructure.Services
                 foreach (var item in financialRecords)
                 {
                     // بررسی گزینه همه رکوردها یا فقط مانده دار ها 
-                    if (requestDB.AllOrHasMandeh == "2" && ((await Calculate_Last_Remain(item) && requestDB.GardeshOrMandeh == "1") || (item.Flow_Credit - item.Flow_Debit ==0 && requestDB.GardeshOrMandeh == "2")))
+                    if (requestDB.AllOrHasMandeh == "2" && await Calculate_Last_Remain(item) && requestDB.GardeshOrMandeh == "1")
                     {
                         continue;
                     }

@@ -121,5 +121,63 @@ namespace WriteBalance.Infrastructure.Services
 
         }
 
+
+        public List<ExcelRow> MergeDuplicateGardeshPouyaRows(List<ExcelRow> rows)
+        {
+            try
+            {
+                var merged = rows
+                    .GroupBy(r => r.Col1)
+                    .SelectMany(g =>
+                    {
+                        var first = g.First();
+                        var bed = g.Sum(x => x.Col5);
+                        var bes = g.Sum(x => x.Col6);
+
+                        if (bed < 0)
+                        {
+                            bes += Math.Abs(bed ?? 0);
+                        }
+                        if (bes < 0)
+                        {
+                            bed += Math.Abs(bes ?? 0);
+                        }
+
+                        var rowList = new List<ExcelRow>();
+                        if (bed > 0)
+                        {
+                            rowList.Add(new ExcelRow
+                            {
+                                Col1 = $"{first.Col1}_BED",
+                                Col2 = first.Col2,
+                                Col3 = 0,
+                                Col4 = 0,
+                                Col5 = bed,
+                                Col6 = 0
+                            });
+                        }
+                        if (bes > 0)
+                        {
+                            rowList.Add(new ExcelRow
+                            {
+                                Col1 = $"{first.Col1}_BES",
+                                Col2 = first.Col2,
+                                Col3 = 0,
+                                Col4 = 0,
+                                Col5 = 0,
+                                Col6 = bes
+                            });
+                        }
+                        return rowList;
+                    }).ToList();
+                return merged;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:MergeDuplicateRows --typeReport:Error");
+                throw;
+            }
+
+        }
     }
 }
