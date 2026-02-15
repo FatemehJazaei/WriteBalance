@@ -91,7 +91,7 @@ namespace WriteBalance.Infrastructure.Services
                 // sama, karbourdi, hamrah  1
                 // rayan 2
                 // pouya 5
-                config["tarazType"] = "2";
+                config["tarazType"] = "5";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";
@@ -100,7 +100,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["ToDateDB"] = "14040424";
                // config["ExceptCode"] = "4131_002|4131_004";
                 config["ExceptCode"] = "";
-                config["GardeshOrMandeh"] = "2";
+                config["GardeshOrMandeh"] = "1";
                 // TarazKol 1 
                 // TarazMoeen 2
                 // default 3
