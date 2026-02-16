@@ -54,8 +54,8 @@ class Program
                     Logger.WriteEntry(JsonConvert.SerializeObject($"connectionString: {connectionString}"), $"Program:Main --typeReport:Debug");
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseSqlServer(connectionString));
-                   
-                    /*
+
+                    
                     //دیتابیس برای سما و همراه و کاربردی 
                     services.AddDbContext<BankDbContext>(options =>
                         options.UseSqlServer(connectionString));
@@ -68,7 +68,7 @@ class Program
                     services.AddDbContext<PouyaBankDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
-                    */
+                    /*
                     ////////////////////////////////////////////
 
                    string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
@@ -82,6 +82,7 @@ class Program
                   services.AddDbContext<PouyaBankDbContext>(options =>
                       options.UseSqlServer(bankConnectionString));
 
+                    */
                     ////////////////////////////////////////////
 
 

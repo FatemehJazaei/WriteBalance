@@ -33,7 +33,7 @@ namespace WriteBalance.Infrastructure.Repositories
             _rayanContext = rayanContext;
             _checkInput = checkInput;
             _pouyaContext = pouyaContext;
-            _IsTest = true;
+            _IsTest = false;
         }
 
         public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)

@@ -289,8 +289,8 @@ namespace WriteBalance.Infrastructure.Services
                     .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
                     .Select(x => new ExcelRow
                     {
-                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
-                        Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
+                        Col1 = $"{x.Kol_Code}",
+                        Col2 = $"{x.Kol_Title}",
                         Col3 = x.Mande_Bed_rial ?? 0,
                         Col4 = x.Mande_Bes_rial ?? 0,
                         Col5 = x.Gardersh_Bed_rial ?? 0,
@@ -303,8 +303,8 @@ namespace WriteBalance.Infrastructure.Services
                     .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
                     .Select(x => new ExcelRow
                     {
-                        Col1 = $"{x.Kol_Code}",
-                        Col2 = $"{x.Kol_Title}",
+                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
+                        Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
                         Col3 = x.Mande_Bed_rial ?? 0,
                         Col4 = x.Mande_Bes_rial ?? 0,
                         Col5 = x.Gardersh_Bed_rial ?? 0,

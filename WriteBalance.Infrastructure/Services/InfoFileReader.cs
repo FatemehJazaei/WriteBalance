@@ -79,7 +79,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
 
-
+                /*
 
                 config["AddressServerBank"] = "Exir-203";
                 //config["AddressServerBank"] = "DESKTOP-262P9P4";
@@ -105,7 +105,7 @@ namespace WriteBalance.Infrastructure.Services
                 // TarazMoeen 2
                 // default 3
                 config["TarazKolOrTarazMoeen"] = "1";
-
+                */
 
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");
