@@ -1,1 +1,1 @@
-{"MessageType":1,"Messages":["ارتباط با پایگاه داده اکسیر ناموفق!"]}
+{"MessageType":1,"Messages":[" GL خطا در بارگیری اطلاعات "]}

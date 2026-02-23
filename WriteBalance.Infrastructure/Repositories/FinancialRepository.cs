@@ -22,19 +22,167 @@ namespace WriteBalance.Infrastructure.Repositories
     public class FinancialRepository : IFinancialRepository
     {
         private readonly BankDbContext _context;
+        private readonly GLBankDbContext _glContext;
         private readonly RayanBankDbContext _rayanContext;
         private readonly PouyaBankDbContext _pouyaContext;
         private readonly ICheckInput _checkInput;
         private readonly bool _IsTest;
 
-        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, PouyaBankDbContext pouyaContext, ICheckInput checkInput)
+        public FinancialRepository(BankDbContext context, RayanBankDbContext rayanContext, PouyaBankDbContext pouyaContext, GLBankDbContext gLBankDbContext, ICheckInput checkInput)
         {
             _context = context;
             _rayanContext = rayanContext;
             _checkInput = checkInput;
             _pouyaContext = pouyaContext;
-            _IsTest = false;
+            _glContext = gLBankDbContext;
+            _IsTest = true;
         }
+
+
+        public List<GLFinancialRecord> ExecuteGLList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
+        {
+            Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteGLList ."), $"FinancialRepository: ExecuteGLList--typeReport:Info");
+            var tarazName = "جی ال";
+            request.tarazNameLatin = "GL";
+
+            if (_glContext == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_glContext is null"), $"FinancialRepository:ExecuteGLList --typeReport:Error");
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $" {tarazName} خطا در ارتباط با پایگاه داده" }
+                    },
+                    requestDB.FolderPath
+                );
+            }
+
+
+            if (_glContext.GLFinancialRecords == null)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"_glContext.GLFinancialRecords is null"), $"FinancialRepository:ExecuteGLList --typeReport:Error");
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $" {tarazName} خطا در ارتباط با جدول " }
+                    },
+                    requestDB.FolderPath
+                );
+            }
+
+            try
+            {
+                _context.Database.SetCommandTimeout(300);
+
+                var pc = new PersianCalendar();
+                var now = DateTime.Now;
+
+                string timestamp = $"{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+                requestDB.FileName = $"تراز {tarazName} دریافت شده در تاریخ {timestamp} برای {endTimePersian}.xlsx";
+
+                Logger.WriteEntry(JsonConvert.SerializeObject($"startTimePersian:{startTimePersian}, endTimePersian:{endTimePersian}"), $"FinancialRepository:ExecuteGLList --typeReport:Debug");
+
+                if (_IsTest)
+                {
+                    // Gl Taraz type = 5
+                    var result = _glContext.GLFinancialRecords
+                                .FromSqlRaw(
+                                    @"EXEC dbo.MainProcGL 
+                                        @username = {0}, 
+                                        @ptoken = {1}, 
+                                        @objecttoken = {2}, 
+                                        @parameterslist = {3}, 
+                                        @OrginalClientAddress = {4}",
+                                    requestDB.UserNameDB,
+                                    requestDB.PtokenDB,
+                                    requestDB.ObjecttokenDB,
+                                   $"{startTimePersian},{endTimePersian},{5}",
+                                    requestDB.OrginalClientAddressDB
+                                )
+                                .ToList();
+
+                    if (result != null && result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteGLList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
+
+                    return result;
+                }
+                else
+                {
+                    var result = _glContext.GLFinancialRecords
+                                .FromSqlRaw(
+                                    @"EXEC  [10.15.43.83].DWProxyDB.dbo.MainProc
+                                                            @username = {0}, 
+                                                            @ptoken = {1}, 
+                                                            @objecttoken = {2}, 
+                                                            @parameterslist = {3}, 
+                                                            @OrginalClientAddress = {4}",
+                                    requestDB.UserNameDB,
+                                    requestDB.PtokenDB,
+                                    requestDB.ObjecttokenDB,
+                                   $"{startTimePersian},{endTimePersian},{5}",
+                                    requestDB.OrginalClientAddressDB
+                                )
+                                .ToList();
+
+                    if (result != null && result.Count == 0)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteGLList --typeReport:Error");
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"اطلاعاتی برای این تواریخ در {tarazName} وجود ندارد." }
+                            },
+                            requestDB.FolderPath
+                        );
+                    }
+                    else if (result == null)
+                    {
+                        throw new Exception("result is null");
+                    }
+                    return result;
+
+                }
+
+            }
+            catch (ConnectionMessageException)
+            {
+                throw;
+
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($" {tarazName} خطا در بارگیری اطلاعات "), $"FinancialRepository:ExecuteGLList --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"FinancialRepository:ExecuteGLList --typeReport:Error");
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $" {tarazName} خطا در بارگیری اطلاعات " }
+                    },
+                    requestDB.FolderPath
+                );
+
+            }
+
+        }
+
 
         public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {

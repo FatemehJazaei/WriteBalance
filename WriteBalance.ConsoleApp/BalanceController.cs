@@ -53,8 +53,7 @@ namespace WriteBalanceConsoleApp
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
                 //چون از سه مدیریت  ارتباط استفاده میکنیم، متغیرهای تراز های دیگر در این قسمت مقداردهی میشود
                 // sama , karbourdi, hamrah 
-                if (config["tarazType"] == "1" || config["tarazType"] == "3" ||
-                    config["tarazType"] == "4")
+                if (config["tarazType"] == "1" || config["tarazType"] == "3" || config["tarazType"] == "4" || config["tarazType"] == "6")
                 {
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
@@ -76,7 +75,6 @@ namespace WriteBalanceConsoleApp
                     config["ToVoucherNum"] = "";
                     config["ExceptVoucherNum"] = "";
                     config["OnlyVoucherNum"] = "";
-
                 }
 
                 // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها

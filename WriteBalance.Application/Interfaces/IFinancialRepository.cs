@@ -10,6 +10,7 @@ namespace WriteBalance.Application.Interfaces
 {
     public  interface IFinancialRepository
     {
+        List<GLFinancialRecord> ExecuteGLList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian);
         List<FinancialRecord> ExecuteSPList(APIRequestDto request,  DBRequestDto requestDB, string startTime , string endTime);
         List<RayanFinancialRecord> ExecuteRayanSPList(APIRequestDto request, DBRequestDto requestDB, string startTime, string endTime);
         List<PouyaFinancialRecord> ExecutePoyaSPList(APIRequestDto request, DBRequestDto requestDB, string startTime, string endTime);

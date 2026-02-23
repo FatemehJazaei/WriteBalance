@@ -34,6 +34,7 @@ namespace WriteBalance.Application.Handlers
         private readonly IBalanceGenerator _balanceGenerator;
         private readonly IPouyaBalanceGenerator _pouyaBalanceGenerator;
         private readonly IRayanBalanceGenerator _rayanBalanceGenerator;
+        private readonly IGLBalanceGenerator _gLBalanceGenerator;
         private readonly IFileEncoder _fileEncoder;
         private readonly ICheckInput _checkInput;
         private readonly Logger _logger;
@@ -45,6 +46,7 @@ namespace WriteBalance.Application.Handlers
             IPouyaBalanceGenerator pouyaBalanceGenerator,
             IRayanBalanceGenerator rayanBalanceGenerator,
             IFinancialRepository financialRepository,
+            IGLBalanceGenerator gLBalanceGenerator,
             IExcelExporter excelExporter,
             IPeriodRepository periodRepository,
             ICheckInput checkInput,
@@ -58,6 +60,7 @@ namespace WriteBalance.Application.Handlers
             _balanceGenerator = balanceGenerator;
             _pouyaBalanceGenerator = pouyaBalanceGenerator;
             _rayanBalanceGenerator = rayanBalanceGenerator;
+            _gLBalanceGenerator = gLBalanceGenerator;
             _checkInput = checkInput;
             _fileEncoder = fileEncoder;
             _logger = logger;
@@ -145,6 +148,10 @@ namespace WriteBalance.Application.Handlers
                 else if (requestDB.TarazType == "5") // تراز پویا
                 {
                     return await Handle_Poya_Async(request, requestDB);
+                }
+                else if (requestDB.TarazType == "6") // تراز GL
+                {
+                    return await Handle_GL_Async(request, requestDB);
                 }
                 else
                 {
@@ -385,6 +392,79 @@ namespace WriteBalance.Application.Handlers
                 requestDB.FileName = requestDB.FileName.Replace("تراز", "تراز گردش");
                 excelStream = await _balanceGenerator.GenerateGardeshTablesAsync(financialRecord, _excelExporter, requestDB);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateGardeshTablesAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+                request.tarazNameLatin = $"{request.tarazNameLatin}_Gardesh";
+            }
+
+            if (requestDB.PrintOrReport == "1")
+            {
+                if (isClosed)
+                {
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $".در دوره مالی بسته یا غیرفعال، بارگذاری تراز امکان پذیر نیست" }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+                var fileBase64 = await _fileEncoder.EncodeFileToBase64Async(excelStream, requestDB.FolderPath, requestDB.FileName);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"EncodeFileToBase64Async done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+
+                var token = await _authService.GetAccessTokenAsync(request, CompanyId, requestDB.FolderPath);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetAccessTokenAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+
+                _ = await _apiService.GetVerifyUniqueNameAsync(token, requestDB.FolderPath, request.BalanceName);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GetVerifyUniqueNameAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+
+                bool PostApi = await _apiService.PostFileAsync(token, fileBase64, requestDB.FileName, request.BalanceName, request.tarazNameLatin, 1, requestDB.FolderPath);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"PostFileAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
+
+                return await Task.FromResult(PostApi);
+            }
+            else
+            {
+                return await Task.FromResult(true);
+            }
+
+        }
+
+
+        // مدیریت تولید تراز GL
+        public async Task<bool> Handle_GL_Async(APIRequestDto request, DBRequestDto requestDB)
+        {
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+
+            string timestamp = $"{pc.GetSecond(now):00}_{pc.GetMinute(now):00}-{pc.GetHour(now):00}" +
+                               $"_{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+            var balanceName = request.BalanceName;
+            string isGardesh = "";
+            if (requestDB.GardeshOrMandeh == "2") { isGardesh = "گردش"; }
+            request.BalanceName = $"{balanceName} تراز {isGardesh} جی ال {timestamp}";
+
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_GL_Async--typeReport:Info");
+
+            (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_GL_Async--typeReport:Info");
+
+            var financialRecord = _financialRepository.ExecuteGLList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList done."), $"WriteBalanceHandler: Handle_GL_Async--typeReport:Info");
+
+            var excelStream = new MemoryStream();
+            if (requestDB.GardeshOrMandeh == "1")
+            {
+                excelStream = await _gLBalanceGenerator.GenerateGLTablesAsync(financialRecord, _excelExporter, requestDB);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync done."), $"WriteBalanceHandler: Handle_GL_Async--typeReport:Info");
+                request.tarazNameLatin = $"{request.tarazNameLatin}_Mandeh";
+            }
+            else if (requestDB.GardeshOrMandeh == "2")
+            {
+                requestDB.FileName = requestDB.FileName.Replace("تراز", "تراز گردش");
+                excelStream = await _gLBalanceGenerator.GenerateGardeshGLTablesAsync(financialRecord, _excelExporter, requestDB);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateGardeshTablesAsync done."), $"WriteBalanceHandler: Handle_GL_Async--typeReport:Info");
                 request.tarazNameLatin = $"{request.tarazNameLatin}_Gardesh";
             }
 

@@ -79,7 +79,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["ExceptVoucherNum"] = "";
                 config["OnlyVoucherNum"] = "";
 
-                /*
+
 
                 config["AddressServerBank"] = "Exir-203";
                 //config["AddressServerBank"] = "DESKTOP-262P9P4";
@@ -91,7 +91,8 @@ namespace WriteBalance.Infrastructure.Services
                 // sama, karbourdi, hamrah  1
                 // rayan 2
                 // pouya 5
-                config["tarazType"] = "5";
+                // GL 6
+                config["tarazType"] = "6";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";
@@ -105,7 +106,7 @@ namespace WriteBalance.Infrastructure.Services
                 // TarazMoeen 2
                 // default 3
                 config["TarazKolOrTarazMoeen"] = "1";
-                */
+
 
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");

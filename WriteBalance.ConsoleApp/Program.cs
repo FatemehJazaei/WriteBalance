@@ -49,40 +49,51 @@ class Program
                 })
                 .ConfigureServices((context, services) =>
                 {
+                   
+                   
                     string connectionString = $"Server={config["AddressServer"]};Database={config["DataBaseName"]};User Id={config["UserName"]};Password={config["Password"]};TrustServerCertificate=True;";
 
                     Logger.WriteEntry(JsonConvert.SerializeObject($"connectionString: {connectionString}"), $"Program:Main --typeReport:Debug");
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
-                    
-                    //دیتابیس برای سما و همراه و کاربردی 
-                    services.AddDbContext<BankDbContext>(options =>
-                        options.UseSqlServer(connectionString));
-
-                    // دیتابیس برای رایان
-                    services.AddDbContext<RayanBankDbContext>(options =>
-                        options.UseSqlServer(connectionString));
-
-                    // دیتابیس برای پویا
-                    services.AddDbContext<PouyaBankDbContext>(options =>
-                        options.UseSqlServer(connectionString));
-
+                    ////////////////////////////////////////////
                     /*
+                     
+                   //دیتابیس برای سما و همراه و کاربردی 
+                   services.AddDbContext<BankDbContext>(options =>
+                       options.UseSqlServer(connectionString));
+
+                   // دیتابیس برای رایان
+                   services.AddDbContext<RayanBankDbContext>(options =>
+                       options.UseSqlServer(connectionString));
+
+                   // دیتابیس برای پویا
+                   services.AddDbContext<PouyaBankDbContext>(options =>
+                       options.UseSqlServer(connectionString));
+
+                   // دیتابیس برای GL
+                   services.AddDbContext<GLBankDbContext>(options =>
+                       options.UseSqlServer(connectionString));
+
+                   */
                     ////////////////////////////////////////////
 
-                   string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
+                    string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
 
-                  services.AddDbContext<BankDbContext>(options =>
+                    services.AddDbContext<BankDbContext>(options =>
                       options.UseSqlServer(bankConnectionString));
 
-                  services.AddDbContext<RayanBankDbContext>(options =>
+                    services.AddDbContext<RayanBankDbContext>(options =>
                       options.UseSqlServer(bankConnectionString));
 
-                  services.AddDbContext<PouyaBankDbContext>(options =>
+                    services.AddDbContext<PouyaBankDbContext>(options =>
                       options.UseSqlServer(bankConnectionString));
 
-                    */
+                    services.AddDbContext<GLBankDbContext>(options =>
+                        options.UseSqlServer(bankConnectionString));
+
+
                     ////////////////////////////////////////////
 
 
@@ -100,6 +111,7 @@ class Program
                     services.AddScoped<ICheckInput, CheckInput>();
                     services.AddSingleton<IBalanceGenerator, BalanceGenerator>();
                     services.AddSingleton<IPouyaBalanceGenerator, PouyaBalanceGenerator>();
+                    services.AddSingleton<IGLBalanceGenerator, GLBalanceGenerator>();
                     services.AddSingleton<IRayanBalanceGenerator, RayanBalanceGenerator>();
                     services.AddScoped<IFinancialRepository, FinancialRepository>();
                     services.AddScoped<IPeriodRepository, PeriodRepository>();
