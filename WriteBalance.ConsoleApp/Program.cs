@@ -115,6 +115,7 @@ class Program
                     services.AddSingleton<IRayanBalanceGenerator, RayanBalanceGenerator>();
                     services.AddScoped<IFinancialRepository, FinancialRepository>();
                     services.AddScoped<IPeriodRepository, PeriodRepository>();
+                    services.AddScoped<ICompareBalance, CompareBalance>();
                     services.AddScoped<IFileEncoder, FileEncoder>();
 
                     // دریافت تنظیمات از فایل 
@@ -141,8 +142,10 @@ class Program
                     services.AddScoped<WriteBalanceHandler>();
                     services.AddScoped<BalanceMerge>();
                     services.AddScoped<BalanceCheck>();
+                    services.AddScoped<CalculateNewRows>();
                     services.AddScoped<BalanceController>();
                     services.AddSingleton<Logger>();
+                    
 
                 })
                 .Build();

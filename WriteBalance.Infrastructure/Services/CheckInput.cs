@@ -184,7 +184,7 @@ namespace WriteBalance.Infrastructure.Services
                 }
                 */
                 // چک کردن نوع تراز
-                if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5" && config["tarazType"] != "6")
+                if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5" && config["tarazType"] != "6" && config["tarazType"] != "7")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("tarazType is invalid"), $"CheckInput--typeReport:Error");
 

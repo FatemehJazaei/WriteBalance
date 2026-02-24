@@ -92,7 +92,8 @@ namespace WriteBalance.Infrastructure.Services
                 // rayan 2
                 // pouya 5
                 // GL 6
-                config["tarazType"] = "6";
+                // ekhtelaf GL AND All 7
+                config["tarazType"] = "7";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";

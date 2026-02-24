@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
 using System;
@@ -35,6 +36,7 @@ namespace WriteBalance.Application.Handlers
         private readonly IPouyaBalanceGenerator _pouyaBalanceGenerator;
         private readonly IRayanBalanceGenerator _rayanBalanceGenerator;
         private readonly IGLBalanceGenerator _gLBalanceGenerator;
+        private readonly ICompareBalance _compareBalance;
         private readonly IFileEncoder _fileEncoder;
         private readonly ICheckInput _checkInput;
         private readonly Logger _logger;
@@ -49,6 +51,7 @@ namespace WriteBalance.Application.Handlers
             IGLBalanceGenerator gLBalanceGenerator,
             IExcelExporter excelExporter,
             IPeriodRepository periodRepository,
+            ICompareBalance compareBalance,
             ICheckInput checkInput,
             IFileEncoder fileEncoder, Logger logger)
         {
@@ -61,6 +64,7 @@ namespace WriteBalance.Application.Handlers
             _pouyaBalanceGenerator = pouyaBalanceGenerator;
             _rayanBalanceGenerator = rayanBalanceGenerator;
             _gLBalanceGenerator = gLBalanceGenerator;
+            _compareBalance = compareBalance;
             _checkInput = checkInput;
             _fileEncoder = fileEncoder;
             _logger = logger;
@@ -152,6 +156,10 @@ namespace WriteBalance.Application.Handlers
                 else if (requestDB.TarazType == "6") // تراز GL
                 {
                     return await Handle_GL_Async(request, requestDB);
+                }
+                else if (requestDB.TarazType == "7") // مقایسه تراز  جی ال  و پنج تراز دیگر 
+                {
+                    return await Handle_Compare_GL_Async(request, requestDB);
                 }
                 else
                 {
@@ -502,5 +510,86 @@ namespace WriteBalance.Application.Handlers
             }
 
         }
+
+
+        // مقایسه تراز جی ال و تراز های دیگر 
+        public async Task<bool> Handle_Compare_GL_Async(APIRequestDto request, DBRequestDto requestDB)
+        {
+            
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+
+            string timestamp = $"{pc.GetSecond(now):00}_{pc.GetMinute(now):00}-{pc.GetHour(now):00}" +
+                               $"_{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
+
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            // تراز جی ال   
+            var GLFinancialRecord = _financialRepository.ExecuteGLList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            var GLExcelRows = await _compareBalance.SetGLExcelRowAsync(GLFinancialRecord);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SetGLExcelRowAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            // تراز سما  
+            requestDB.TarazType = "1";
+            var samaFinancialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList_sama done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            var samaExcelRow = await _compareBalance.SetExcelRowAsync(samaFinancialRecord);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SetExcelRowAsync_sama done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            // تراز همراه 
+            requestDB.TarazType = "4";
+            var hamrahFinancialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList_hamrah done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            var hamrahExcelRow = await _compareBalance.SetExcelRowAsync(hamrahFinancialRecord);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SetExcelRowAsync_hamrah done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            //تراز کاربردی 
+            requestDB.TarazType = "3";
+            var karbourdiFinancialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList_karbourdi done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            var karbourdiExcelRow = await _compareBalance.SetExcelRowAsync(karbourdiFinancialRecord);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SetExcelRowAsync_karbourdi done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            //تراز رایان 
+            requestDB.TarazType = "2";
+            var rayanFinancialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            var rayanExcelRow = await _compareBalance.SetRayanExcelRowAsync(rayanFinancialRecord);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SetExcelRowAsync_rayan done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            //تراز پویا 
+            requestDB.TarazType = "5";
+            var pouyaFinancialRecord = _financialRepository.ExecutePoyaSPList(request, requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"ExecutePoyaSPList done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            var pouyaExcelRow = await _compareBalance.SetPouyaExcelRowAsync(pouyaFinancialRecord);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"SetPouyaExcelRowAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            // تجمیع 5 تراز
+            var allExcelRows = await _compareBalance.CreateAllExcelRowAsync(samaExcelRow, hamrahExcelRow, karbourdiExcelRow, rayanExcelRow, pouyaExcelRow);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CreateAllExcelRowAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            // مقایسه تراز ها 
+            var compareExcelRows = await _compareBalance.CompareBalanceAsync(allExcelRows, GLExcelRows, requestDB);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CompareBalanceAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            // ذخیره در اکسل
+            requestDB.FileName = $" گزارش مقایسه ترازها با تراز جی ال {timestamp}.xlsx";
+            await _compareBalance.WriteExcelAsync(compareExcelRows, _excelExporter, requestDB);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"WriteExcelAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
+            return await Task.FromResult(true);
+        }
+
     }
 }
