@@ -34,9 +34,18 @@ namespace WriteBalanceConsoleApp
                 var InputValid = _checkInput.CheckUserInput(config);
                 //کدهای حذفی چک میشود
                 List<ExceptCode> ExceptCodes = new List<ExceptCode>();
+                //شماره سند های حذفی چک میشود
+                List<string> ExceptVoucherNum = new List<string>();
                 if (config["tarazType"] == "2")
                 {
                     ExceptCodes = _checkInput.CheckExceptCode(config);
+                    ExceptVoucherNum = _checkInput.CheckVoucherNumInput(config);
+                }
+
+                if(ExceptVoucherNum.Count != 0)
+                {
+                    config["FromVoucherNum"] = "";
+                    config["ToVoucherNum"] = "";
                 }
 
                 string folderName = config["of"];
@@ -103,13 +112,12 @@ namespace WriteBalanceConsoleApp
                     ToDateDB = config["ToDateDB"],
                     FromVoucherNum = config["FromVoucherNum"],
                     ToVoucherNum = config["ToVoucherNum"],
-                    ExceptVoucherNum = config["ExceptVoucherNum"],
-                    OnlyVoucherNum = config["OnlyVoucherNum"],
                     PrintOrReport = config["PrintOrReport"],
                     TarazKolOrTarazMoeen = config["TarazKolOrTarazMoeen"],
                     FolderPath = folderPath,
                     FileName = "",
                     ExceptCode = ExceptCodes,
+                    ExceptVoucherNum = ExceptVoucherNum,
                 };
 
                 // اطلاعات به  کلاس مدیریت عملیات ارسال میشود و فرایند استارت میشود

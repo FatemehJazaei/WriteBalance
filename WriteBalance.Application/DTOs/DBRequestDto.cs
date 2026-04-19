@@ -16,13 +16,11 @@ namespace WriteBalance.Application.DTOs
         public string OrginalClientAddressDB { get; set; } = string.Empty;
         public string FromVoucherNum { get; set; } = string.Empty;
         public string ToVoucherNum { get; set; } = string.Empty;
-        public string ExceptVoucherNum { get; set; } = string.Empty;
-        public string OnlyVoucherNum { get; set; } = string.Empty;
         public string PrintOrReport { get; set; } = string.Empty;
         public string TarazKolOrTarazMoeen { get; set; } = string.Empty;       
         public string FileName { get; set; } = string.Empty;
         public string FolderPath { get; set; } = string.Empty;
         public List<ExceptCode> ExceptCode { get; set; } = new List<ExceptCode>();
-
+        public List<string> ExceptVoucherNum { get; set; } = new List<string>();
     }
 }

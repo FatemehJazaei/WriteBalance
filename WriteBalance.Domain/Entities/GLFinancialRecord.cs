@@ -20,7 +20,7 @@ namespace WriteBalance.Domain.Entities
         public decimal? Flow_Debit { get; set; }
         public decimal? Remain_Last_Credit { get; set; }
         public decimal? Remain_last_Debit { get; set; }
-        public decimal? Account_Remain { get; set; }
+        //public decimal? Account_Remain { get; set; }
 
     }
 }

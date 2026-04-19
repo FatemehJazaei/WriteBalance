@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -588,5 +589,53 @@ namespace WriteBalance.Infrastructure.Services
             }
         }
 
+
+        public List<RayanFinancialRecord> ExceptRayanTables(List<RayanFinancialRecord> RayanFinancialRecord, DBRequestDto requestDB)
+        {
+            try
+            {
+                var ExceptVoucherRayanFinancialRecord = RayanFinancialRecord
+                        .Select(x => new RayanFinancialRecord
+                        {
+                            Group_code = x.Group_code,
+                            Group_Title = x.Group_Title,
+                            Kol_Code = x.Kol_Code,
+                            Kol_Title = x.Kol_Title,
+                            Moeen_Code = x.Moeen_Code,
+                            Moeen_Title = x.Moeen_Title,
+                            Tafsili_Code = x.Tafsili_Code,
+                            Tafsili_Title = x.Tafsili_Title,
+                            joze1_Code = x.joze1_Code,
+                            joze1_Title = x.joze1_Title,
+                            joze2_Title = x.joze2_Title,
+                            joze2_Code = x.joze2_Code,
+                            Code_Markaz_Hazineh = x.Code_Markaz_Hazineh,
+                            Code_Vahed_Amaliyat = x.Code_Vahed_Amaliyat,
+                            Name_Vahed_Amaliyat = x.Name_Vahed_Amaliyat,
+                            Code_Parvandeh = x.Code_Parvandeh,
+                            Name_Parvandeh = x.Name_Parvandeh,
+                            Mandeh_Aval_dore = x.Mandeh_Aval_dore,
+                            bedehkar = x.bestankar,
+                            bestankar = x.bedehkar,
+                            Mande_Bed = x.Mande_Bes,
+                            Mande_Bes = x.Mande_Bed
+                        }
+                        ).ToList();
+                return ExceptVoucherRayanFinancialRecord;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"RayanBalanceGenerator:GenerateRawRayanTablesAsync --typeReport:Error");
+
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { "خطا در تولید تراز رایان" }
+                    },
+                requestDB.FolderPath
+                );
+            }
+        }
     }
 }

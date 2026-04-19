@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Drawing;
+﻿using Azure.Core;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Vml;
 using Newtonsoft.Json;
@@ -120,68 +121,74 @@ namespace WriteBalance.Infrastructure.Services
             try
             {
                 /*
-
-                if (config["OnlyVoucherNum"] != "" ||  config["ToVoucherNum"]  != ""  ||  config["OnlyVoucherNum"] != "" ||  config["ExceptVoucherNum"] != "")
-                {
-                    if (config["OnlyVoucherNum"] != "" && config["ToVoucherNum"] != "" && config["OnlyVoucherNum"] != "")
-                    {
-                        Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput--typeReport:Error");
-                        throw new ConnectionMessageException(
-                            new ConnectionMessage
-                            {
-                                MessageType = MessageType.Error,
-                                Messages = new List<string> { $" ورودی نامعتبر " }
-                            },
-                        Path.Combine(config["op"], config["of"])
-                        );
-                    }
+               // rayan
+               if (config["tarazType"] == "2")
+               {
 
 
-                    if (int.Parse(config["OnlyVoucherNum"]) < 0 || int.Parse(config["ExceptVoucherNum"]) < 0 || int.Parse(config["ToVoucherNum"]) < 0 || int.Parse(config["FromVoucherNum"]) < 0)
-                    {
+                   if (config["OnlyVoucherNum"] != "" || config["ToVoucherNum"] != "" || config["OnlyVoucherNum"] != "" || config["ExceptVoucherNum"] != "")
+                   {
+                       if (config["OnlyVoucherNum"] != "" && config["ToVoucherNum"] != "" && config["OnlyVoucherNum"] != "")
+                       {
+                           Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput--typeReport:Error");
+                           throw new ConnectionMessageException(
+                               new ConnectionMessage
+                               {
+                                   MessageType = MessageType.Error,
+                                   Messages = new List<string> { $" ورودی نامعتبر " }
+                               },
+                           Path.Combine(config["op"], config["of"])
+                           );
+                       }
 
-                        Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is negetive"), $"CheckInput--typeReport:Error");
 
-                        throw new ConnectionMessageException(
-                            new ConnectionMessage
-                            {
-                                MessageType = MessageType.Error,
-                                Messages = new List<string> { $" ورودی نامعتبر " }
-                            },
-                        Path.Combine(config["op"], config["of"])
-                        );
-                    }
+                       if (int.Parse(config["OnlyVoucherNum"]) < 0 || int.Parse(config["ExceptVoucherNum"]) < 0 || int.Parse(config["ToVoucherNum"]) < 0 || int.Parse(config["FromVoucherNum"]) < 0)
+                       {
+
+                           Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is negetive"), $"CheckInput--typeReport:Error");
+
+                           throw new ConnectionMessageException(
+                               new ConnectionMessage
+                               {
+                                   MessageType = MessageType.Error,
+                                   Messages = new List<string> { $" ورودی نامعتبر " }
+                               },
+                           Path.Combine(config["op"], config["of"])
+                           );
+                       }
 
 
-                    if (int.Parse(config["ToVoucherNum"]) < int.Parse(config["ExceptVoucherNum"]) || int.Parse(config["ToVoucherNum"]) < int.Parse(config["FromVoucherNum"]) || int.Parse(config["FromVoucherNum"]) > int.Parse(config["ExceptVoucherNum"]))
-                    {
-                        
-                        Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput--typeReport:Error");
+                       if (int.Parse(config["ToVoucherNum"]) < int.Parse(config["ExceptVoucherNum"]) || int.Parse(config["ToVoucherNum"]) < int.Parse(config["FromVoucherNum"]) || int.Parse(config["FromVoucherNum"]) > int.Parse(config["ExceptVoucherNum"]))
+                       {
 
-                        throw new ConnectionMessageException(
-                            new ConnectionMessage
-                            {
-                                MessageType = MessageType.Error,
-                                Messages = new List<string> { $" ورودی نامعتبر " }
-                            },
-                        Path.Combine(config["op"], config["of"])
-                        );
-                    }
+                           Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput--typeReport:Error");
 
-                    if (config["ToVoucherNum"] == "" && config["FromVoucherNum"] == "" && config["ExceptVoucherNum"] != "")
-                    {
-                        Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput--typeReport:Error");
+                           throw new ConnectionMessageException(
+                               new ConnectionMessage
+                               {
+                                   MessageType = MessageType.Error,
+                                   Messages = new List<string> { $" ورودی نامعتبر " }
+                               },
+                           Path.Combine(config["op"], config["of"])
+                           );
+                       }
 
-                        throw new ConnectionMessageException(
-                            new ConnectionMessage
-                            {
-                                MessageType = MessageType.Error,
-                                Messages = new List<string> { $" ورودی نامعتبر " }
-                            },
-                        Path.Combine(config["op"], config["of"])
-                        );
-                    }
-                }
+                       if (config["ToVoucherNum"] == "" && config["FromVoucherNum"] == "" && config["ExceptVoucherNum"] != "")
+                       {
+                           Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput--typeReport:Error");
+
+                           throw new ConnectionMessageException(
+                               new ConnectionMessage
+                               {
+                                   MessageType = MessageType.Error,
+                                   Messages = new List<string> { $" ورودی نامعتبر " }
+                               },
+                           Path.Combine(config["op"], config["of"])
+                           );
+                       }
+                   }
+                   
+            }
                 */
                 // چک کردن نوع تراز
                 if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5" && config["tarazType"] != "6" && config["tarazType"] != "7")
@@ -327,5 +334,118 @@ namespace WriteBalance.Infrastructure.Services
                 );
             }
         }
+
+        // چک کردن شماره اسناد ورودی
+        public List<string> CheckVoucherNumInput(Dictionary<string, string> config)
+        {
+
+            try
+            {
+                List<string> RayanExceptVoucher = new List<string>();
+                if (config["ExceptVoucherNum"] != "" && (config["ToVoucherNum"] != "" || config["FromVoucherNum"] != ""))
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput:CheckVoucherNumInput--typeReport:Error");
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"ورودی نامعتبر  " }
+                        },
+                    Path.Combine(config["op"], config["of"])
+                    );
+                }
+                else if (config["FromVoucherNum"] != "" || config["ToVoucherNum"] != "")
+                {
+
+
+                    if (!int.TryParse(config["ToVoucherNum"], out var ToVoucherNum) || !int.TryParse(config["FromVoucherNum"], out var FromVoucherNum))
+                    {
+
+                        Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is invalid"), $"CheckInput:CheckVoucherNumInput--typeReport:Error");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $" ورودی نامعتبر " }
+                            },
+                        Path.Combine(config["op"], config["of"])
+                        );
+                    }
+
+                    if (int.Parse(config["ToVoucherNum"]) < int.Parse(config["FromVoucherNum"]))
+                    {
+
+                        Logger.WriteEntry(JsonConvert.SerializeObject("VoucherNum is negetive"), $"CheckInput:CheckVoucherNumInput--typeReport:Error");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $" شماره سند ورودی نامعتبر " }
+                            },
+                        Path.Combine(config["op"], config["of"])
+                        );
+                    }
+
+                }
+                else if (config["ExceptVoucherNum"] != "") 
+                {
+                    RayanExceptVoucher = CheckExceptVoucherNums(config);
+                }
+
+                    return RayanExceptVoucher;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"{ex}"), $"CheckInput--typeReport:Error");
+                throw;
+            }
+        }
+
+
+        // جداسازی شماره اسناد
+        // شماره ها  باید به فرمت زیر وارد شوند
+        // 415|4136
+        // شماره سند ها باید با |  جدا شوند
+        private List<string> CheckExceptVoucherNums(Dictionary<string, string> config)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting CheckExceptVoucherNums ..."), $"CheckInput:CheckExceptVoucherNums--typeReport:Info");
+                List<string> RayanExceptVoucher = new List<string>();
+                if (config["ExceptVoucherNum"] != "")
+                {
+                    string[] Nums = config["ExceptVoucherNum"].Split('|');
+                    foreach (string NumString in Nums)
+                    {
+                        if (int.TryParse(NumString, out var numberint))
+                        {
+                            RayanExceptVoucher.Add(NumString);
+                        }
+                        else 
+                        {
+                            throw new Exception($"voucher Num is invalid!!");
+                        }
+
+                    }
+
+                }
+                return RayanExceptVoucher;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"{ex}"), $"CheckInput:CheckExceptVoucherNums--typeReport:Error");
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { $"شماره اسناد به صورت صحیح وارد نشده اند." }
+                    },
+                Path.Combine(config["op"], config["of"])
+                );
+            }
+        }
+
     }
 }

@@ -35,7 +35,7 @@ namespace WriteBalance.Infrastructure.Repositories
             _checkInput = checkInput;
             _pouyaContext = pouyaContext;
             _glContext = gLBankDbContext;
-            _IsTest = true;
+            _IsTest = false;
         }
 
 
@@ -350,7 +350,7 @@ namespace WriteBalance.Infrastructure.Repositories
 
         }
 
-        public List<RayanFinancialRecord> ExecuteRayanSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
+        public List<RayanFinancialRecord> ExecuteRayanSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian, bool IsExcept)
         {
             Logger.WriteEntry(JsonConvert.SerializeObject($"Starting ExecuteRayanSPList "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Info");
 
@@ -415,9 +415,9 @@ namespace WriteBalance.Infrastructure.Repositories
                     )
                     .ToList();
 
-                    if (result != null && result.Count == 0)
+                    if (result != null && result.Count == 0 && !IsExcept)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {
@@ -435,6 +435,18 @@ namespace WriteBalance.Infrastructure.Repositories
                 }
                 else
                 {
+
+                    object toVoucherParam = int.TryParse(requestDB.ToVoucherNum, out var toVoucher)
+                    ? toVoucher
+                    : DBNull.Value;
+
+                    object FromVoucherParam = int.TryParse(requestDB.FromVoucherNum, out var fromVoucher)
+                    ? fromVoucher
+                    : DBNull.Value;
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"FromVoucherParam: {FromVoucherParam},toVoucherParam = {toVoucherParam} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
+
+
                     var result = _rayanContext.RayanFinancialBalance
                                 .FromSqlRaw(
                                 @"EXEC [10.15.7.87].[AccountingDB].[dbo].[SouratMali]
@@ -444,16 +456,16 @@ namespace WriteBalance.Infrastructure.Repositories
 		                                                    @ToVoucherNum = {3}",
                                 int.Parse(startTimePersian),
                                 int.Parse(endTimePersian),
-                                 //requestDB.FromVoucherNum,
-                                 //requestDB.ToVoucherNum
-                                 DBNull.Value,
-                                 DBNull.Value
+                                FromVoucherParam,
+                                toVoucherParam
+                            //DBNull.Value,
+                            //DBNull.Value
                             )
                             .ToList();
 
                     if (result != null && result.Count == 0)
                     {
-                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteRayanSPList --typeReport:Error");
                         throw new ConnectionMessageException(
                             new ConnectionMessage
                             {

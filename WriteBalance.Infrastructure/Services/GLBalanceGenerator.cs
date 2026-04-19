@@ -335,7 +335,7 @@ namespace WriteBalance.Infrastructure.Services
                 worksheet.Cell(row, 10).Value = "Flow_Debit";
                 worksheet.Cell(row, 11).Value = "Remain_Last_Credit";
                 worksheet.Cell(row, 12).Value = "Remain_last_Debit";
-                worksheet.Cell(row, 13).Value = "Account_Remain";
+                //worksheet.Cell(row, 13).Value = "Account_Remain";
 
                 row = 2;
                 int writeValue = 0;
@@ -361,7 +361,7 @@ namespace WriteBalance.Infrastructure.Services
                         worksheet.Cell(row, 10).Value = item.Flow_Debit;
                         worksheet.Cell(row, 11).Value = item.Remain_Last_Credit;
                         worksheet.Cell(row, 12).Value = item.Remain_last_Debit;
-                        worksheet.Cell(row, 13).Value = item.Account_Remain;
+                        //worksheet.Cell(row, 13).Value = item.Account_Remain;
 
                         row++;
 
@@ -403,7 +403,7 @@ namespace WriteBalance.Infrastructure.Services
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 }
 
-                var headerRange = worksheet.Range("A1:M1");
+                var headerRange = worksheet.Range("A1:L1");
                 headerRange.Style.Font.Bold = true;
                 headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;

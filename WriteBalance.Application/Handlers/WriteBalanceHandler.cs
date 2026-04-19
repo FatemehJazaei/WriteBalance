@@ -204,8 +204,32 @@ namespace WriteBalance.Application.Handlers
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
             Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
-            var financialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr);
+            var financialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr, false);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+
+            if (requestDB.ExceptVoucherNum.Count != 0)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"ExceptVoucherNum.Count: {requestDB.ExceptVoucherNum.Count} ."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+                List<RayanFinancialRecord> ExceptRayanFinancialRecords = new List<RayanFinancialRecord>();
+                foreach ( var VoucherNum in requestDB.ExceptVoucherNum)
+                {
+                    requestDB.ToVoucherNum = VoucherNum;
+                    requestDB.FromVoucherNum = VoucherNum;
+                    var exceptVouchernum = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr,true);
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done for voucher number: {VoucherNum} ."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+                    if (exceptVouchernum.Count != 0) 
+                    {
+                        ExceptRayanFinancialRecords.AddRange(exceptVouchernum);
+                    }
+         
+                }
+                ExceptRayanFinancialRecords = _rayanBalanceGenerator.ExceptRayanTables(ExceptRayanFinancialRecords, requestDB);
+                Logger.WriteEntry(JsonConvert.SerializeObject($"ExceptRayanTables done ."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
+                financialRecord = financialRecord
+                .Concat(ExceptRayanFinancialRecords)
+                .ToList();
+            }
+
 
             var excelStream = new MemoryStream();
             if (requestDB.GardeshOrMandeh == "1")
@@ -561,7 +585,7 @@ namespace WriteBalance.Application.Handlers
 
             //تراز رایان 
             requestDB.TarazType = "2";
-            var rayanFinancialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr);
+            var rayanFinancialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr, false);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
             var rayanExcelRow = await _compareBalance.SetRayanExcelRowAsync(rayanFinancialRecord);

@@ -74,13 +74,13 @@ namespace WriteBalance.Infrastructure.Services
                 config["ptokenDB"] = "c3d8e6a3459b15c9";
                 config["objecttokenDB"] = "3d9758851923e42b";
                 config["OrginalClientAddressDB"] = "10.15.52.97";
-                config["FromVoucherNum"] = "";
-                config["ToVoucherNum"] = "";
-                config["ExceptVoucherNum"] = "";
-                config["OnlyVoucherNum"] = "";
+                //config["FromVoucherNum"] = "";
+                //config["ToVoucherNum"] = "";
+                //config["ExceptVoucherNum"] = "";
 
 
 
+                /*
                 config["AddressServerBank"] = "Exir-203";
                 //config["AddressServerBank"] = "DESKTOP-262P9P4";
                 config["DataBaseNameBank"] = "Database1";
@@ -107,7 +107,7 @@ namespace WriteBalance.Infrastructure.Services
                 // TarazMoeen 2
                 // default 3
                 config["TarazKolOrTarazMoeen"] = "1";
-
+                */
 
 
                 string filePath = Path.Combine(AppContext.BaseDirectory, @"..\Basic_Information\Info.txt");

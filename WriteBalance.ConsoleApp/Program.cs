@@ -58,7 +58,7 @@ class Program
                         options.UseSqlServer(connectionString));
 
                     ////////////////////////////////////////////
-                    /*
+                    
                      
                    //دیتابیس برای سما و همراه و کاربردی 
                    services.AddDbContext<BankDbContext>(options =>
@@ -76,9 +76,10 @@ class Program
                    services.AddDbContext<GLBankDbContext>(options =>
                        options.UseSqlServer(connectionString));
 
-                   */
+
                     ////////////////////////////////////////////
 
+                    /*
                     string bankConnectionString = $"Server={config["AddressServerBank"]};Database={config["DataBaseNameBank"]};Trusted_Connection=True;TrustServerCertificate=True;";
 
                     services.AddDbContext<BankDbContext>(options =>
@@ -93,7 +94,7 @@ class Program
                     services.AddDbContext<GLBankDbContext>(options =>
                         options.UseSqlServer(bankConnectionString));
 
-
+                    */
                     ////////////////////////////////////////////
 
 

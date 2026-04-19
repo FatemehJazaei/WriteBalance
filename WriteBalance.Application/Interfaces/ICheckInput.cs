@@ -13,5 +13,6 @@ namespace WriteBalance.Application.Interfaces
         (string, string) CheckDateInput(DBRequestDto requestDB, DateTime startDateTime, DateTime endDateTime);
         bool CheckUserInput(Dictionary<string, string> config);
         List<ExceptCode> CheckExceptCode(Dictionary<string, string> config);
+        List<string> CheckVoucherNumInput(Dictionary<string, string> config);
     }
 }

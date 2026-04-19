@@ -12,6 +12,6 @@ namespace WriteBalance.Application.Interfaces
     {
         Task<MemoryStream> GenerateRayanTablesAsync(List<RayanFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB);
         Task<MemoryStream> GenerateRayanGardeshTablesAsync(List<RayanFinancialRecord> financialRecords, IExcelExporter excelExporter, DBRequestDto requestDB);
-
+        List<RayanFinancialRecord> ExceptRayanTables(List<RayanFinancialRecord> RayanFinancialRecord, DBRequestDto requestDB);
     }
 }
