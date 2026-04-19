@@ -56,7 +56,7 @@ namespace WriteBalance.Infrastructure.Services
                         .Select(x => new ExcelRow
                         {
                             Col1 = $"{x.RBank_Code[..4]}",
-                            Col2 = $"{x.Title}",
+                            Col2 = $"{x.RBank_Title.Replace("***","_")}",
                             Col3 = x.Remain_last_Debit ?? decimal.Zero,
                             Col4 = x.Remain_Last_Credit ?? decimal.Zero,
                             Col5 = x.Flow_Debit ?? decimal.Zero,
@@ -70,8 +70,8 @@ namespace WriteBalance.Infrastructure.Services
                         //.Where(x => (x.RBank_Code[0] != '6'))
                         .Select(x => new ExcelRow
                         {
-                            Col1 = $"{x.RBank_Code}",
-                            Col2 = $"{x.Title}",
+                            Col1 = $"{x.RBank_Code.Replace("-", "_")}",
+                            Col2 = $"{x.RBank_Title.Replace("***", "_")}",
                             Col3 = x.Remain_last_Debit ?? decimal.Zero,
                             Col4 = x.Remain_Last_Credit ?? decimal.Zero,
                             Col5 = x.Flow_Debit ?? decimal.Zero,
@@ -202,7 +202,7 @@ namespace WriteBalance.Infrastructure.Services
                         .Select(x => new ExcelRow
                         {
                             Col1 = $"{x.RBank_Code[..4]}",
-                            Col2 = $"{x.Title}",
+                            Col2 = $"{x.RBank_Title.Replace("***", "_")}",
                             Col3 = x.Remain_last_Debit ?? decimal.Zero,
                             Col4 = x.Remain_Last_Credit ?? decimal.Zero,
                             Col5 = x.Flow_Debit ?? decimal.Zero,
@@ -216,8 +216,8 @@ namespace WriteBalance.Infrastructure.Services
                         //.Where(x => (x.RBank_Code[0] != '6'))
                         .Select(x => new ExcelRow
                         {
-                            Col1 = $"{x.RBank_Code}",
-                            Col2 = $"{x.Title}",
+                            Col1 = $"{x.RBank_Code.Replace("-", "_")}",
+                            Col2 = $"{x.RBank_Title.Replace("***", "_")}",
                             Col3 = x.Remain_last_Debit ?? decimal.Zero,
                             Col4 = x.Remain_Last_Credit ?? decimal.Zero,
                             Col5 = x.Flow_Debit ?? decimal.Zero,
@@ -325,7 +325,7 @@ namespace WriteBalance.Infrastructure.Services
                 // عنوان ستون ها  تنظیم میشود
                 worksheet.Cell(row, 1).Value = "Branch_ID";
                 worksheet.Cell(row, 2).Value = "RBank_Code";
-                worksheet.Cell(row, 3).Value = "Title";
+                worksheet.Cell(row, 3).Value = "RBank_Title";
                 worksheet.Cell(row, 4).Value = "FinApplication_ID";
                 worksheet.Cell(row, 5).Value = "FinApplication_Title";
                 worksheet.Cell(row, 6).Value = "Motamam";
@@ -351,7 +351,7 @@ namespace WriteBalance.Infrastructure.Services
                     {
                         worksheet.Cell(row, 1).Value = item.Branch_ID;
                         worksheet.Cell(row, 2).Value = item.RBank_Code;
-                        worksheet.Cell(row, 3).Value = item.Title;
+                        worksheet.Cell(row, 3).Value = item.RBank_Title;
                         worksheet.Cell(row, 4).Value = item.FinApplication_ID;
                         worksheet.Cell(row, 5).Value = item.FinApplication_Title;
                         worksheet.Cell(row, 6).Value = item.Motamam;

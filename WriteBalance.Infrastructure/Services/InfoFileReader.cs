@@ -73,6 +73,7 @@ namespace WriteBalance.Infrastructure.Services
                 config["UserNameDB"] = "SysSouratMali";
                 config["ptokenDB"] = "c3d8e6a3459b15c9";
                 config["objecttokenDB"] = "3d9758851923e42b";
+                config["objecttokenGL"] = "c5c5275a360247af";
                 config["OrginalClientAddressDB"] = "10.15.52.97";
                 //config["FromVoucherNum"] = "";
                 //config["ToVoucherNum"] = "";

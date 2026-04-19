@@ -71,7 +71,7 @@ namespace WriteBalance.Infrastructure.Services
                     .Select(x => new ExcelRow
                     {
                         Col1 = $"{x.RBank_Code[..4]}",
-                        Col2 = $"{x.Title}",
+                        Col2 = $"{x.RBank_Title.Replace("***", "_")}",
                         Col3 = x.Remain_last_Debit ?? decimal.Zero,
                         Col4 = x.Remain_Last_Credit ?? decimal.Zero,
                         Col5 = x.Flow_Debit ?? decimal.Zero,

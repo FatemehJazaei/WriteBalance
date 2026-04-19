@@ -1,0 +1,7 @@
+		
+exec     [10.15.43.83].DWProxyDB.dbo.MainProc
+@username =N'SysSouratMali',
+@ptoken =N'c3d8e6a3459b15c9',
+@objecttoken  =  N'c5c5275a360247af',
+@parameterslist =N'14041228,5',
+@OrginalClientAddress = '10.15.52.97'

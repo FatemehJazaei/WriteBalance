@@ -7,6 +7,8 @@ namespace WriteBalance.Application.DTOs
         public string UserNameDB { get; set; } = string.Empty;
         public string PtokenDB { get; set; } = string.Empty;
         public string ObjecttokenDB { get; set; } = string.Empty;
+        public string ObjecttokenGL { get; set; } = string.Empty;
+        
         public string FromDateDB { get; set; } = string.Empty;
         public string ToDateDB { get; set; } = string.Empty;
         public string TarazType { get; set; } = string.Empty;

@@ -67,7 +67,6 @@ namespace WriteBalanceConsoleApp
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
                     config["ExceptVoucherNum"] = "";
-                    config["OnlyVoucherNum"] = "";
                     config["tarazTypePouya"] = "";
                     config["ExceptCode"] = "";
                 }
@@ -83,7 +82,6 @@ namespace WriteBalanceConsoleApp
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
                     config["ExceptVoucherNum"] = "";
-                    config["OnlyVoucherNum"] = "";
                 }
 
                 // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها
@@ -103,6 +101,7 @@ namespace WriteBalanceConsoleApp
                     UserNameDB = config["UserNameDB"],
                     PtokenDB = config["ptokenDB"],
                     ObjecttokenDB = config["objecttokenDB"],
+                    ObjecttokenGL= config["objecttokenGL"],
                     OrginalClientAddressDB = config["OrginalClientAddressDB"],
                     TarazType = config["tarazType"],
                     TarazTypePouya =  config["tarazTypePouya"],

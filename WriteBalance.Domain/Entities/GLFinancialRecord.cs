@@ -10,7 +10,7 @@ namespace WriteBalance.Domain.Entities
     {
         public int? Branch_ID { get; set; }
         public string? RBank_Code { get; set; }
-        public string? Title { get; set; }
+        public string? RBank_Title { get; set; }
         public int? FinApplication_ID { get; set; }
         public string? FinApplication_Title { get; set; }
         public int? Motamam { get; set; }
@@ -20,7 +20,7 @@ namespace WriteBalance.Domain.Entities
         public decimal? Flow_Debit { get; set; }
         public decimal? Remain_Last_Credit { get; set; }
         public decimal? Remain_last_Debit { get; set; }
-        //public decimal? Account_Remain { get; set; }
+        public decimal? Account_Remain { get; set; }
 
     }
 }

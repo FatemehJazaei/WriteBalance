@@ -97,8 +97,9 @@ namespace WriteBalance.Infrastructure.Repositories
                                         @OrginalClientAddress = {4}",
                                     requestDB.UserNameDB,
                                     requestDB.PtokenDB,
-                                    requestDB.ObjecttokenDB,
-                                   $"{startTimePersian},{endTimePersian},{5}",
+                                    requestDB.ObjecttokenGL,
+                                   //$"{startTimePersian},{endTimePersian},{5}",
+                                   $"{endTimePersian},{5}",
                                     requestDB.OrginalClientAddressDB
                                 )
                                 .ToList();
@@ -134,8 +135,9 @@ namespace WriteBalance.Infrastructure.Repositories
                                                             @OrginalClientAddress = {4}",
                                     requestDB.UserNameDB,
                                     requestDB.PtokenDB,
-                                    requestDB.ObjecttokenDB,
-                                   $"{startTimePersian},{endTimePersian},{5}",
+                                    requestDB.ObjecttokenGL,
+                                   //$"{startTimePersian},{endTimePersian},{5}",
+                                   $"{endTimePersian},{5}",
                                     requestDB.OrginalClientAddressDB
                                 )
                                 .ToList();
