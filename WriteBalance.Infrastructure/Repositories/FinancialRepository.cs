@@ -204,6 +204,14 @@ namespace WriteBalance.Infrastructure.Repositories
                     tarazName = "کاربردی";
                     request.tarazNameLatin = "Karbordi";
                     break;
+                case "2":
+                    tarazName = "پویا";
+                    request.tarazNameLatin = "pouya";
+                    break;
+                case "5":
+                    tarazName = "رایان";
+                    request.tarazNameLatin = "Rayan";
+                    break;
             }
 
             if (_context == null)

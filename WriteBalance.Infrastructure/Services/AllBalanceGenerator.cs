@@ -1,0 +1,551 @@
+﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WriteBalance.Application.DTOs;
+using WriteBalance.Application.Exceptions;
+using WriteBalance.Application.Interfaces;
+using WriteBalance.Common.Logging;
+using WriteBalance.Domain.Entities;
+
+namespace WriteBalance.Infrastructure.Services
+{
+    public class AllBalanceGenerator : IAllBalanceGenerator
+    {
+
+        public BalanceMerge _balanceMerge;
+        public BalanceCheck _balanceCheck;
+        public CalculateNewRows _calculateNewRows;
+        public AllBalanceGenerator(BalanceMerge balanceMerge, BalanceCheck balanceCheck, CalculateNewRows calculateNewRows)
+        {
+            _balanceMerge = balanceMerge;
+            _balanceCheck = balanceCheck;
+            _calculateNewRows = calculateNewRows;
+        }
+
+        public async Task<List<ExcelRow>> CheckExcelRowGLAsync(List<FinancialRecord> financialRecords, DBRequestDto requestDB)
+        {
+            try
+            {
+                var tarazName = "";
+                switch (requestDB.TarazType)
+                {
+                    case "1":
+                        tarazName = "سما";
+                        break;
+                    case "4":
+                        tarazName = "همراه";
+                        break;
+                    case "3":
+                        tarazName = "کاربردی";
+                        break;
+                    case "2":
+                        tarazName = "پویا";
+                        break;
+                    case "5":
+                        tarazName = "رایان";
+                        break;
+                }
+
+                List<ExcelRow> rows = new List<ExcelRow>();
+                if (requestDB.TarazKolOrTarazMoeen == "1")
+                {
+                    // فیلتر کردن کد کل 6
+                     rows = financialRecords
+                        .Where(x => (x.Kol_Code[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}",
+                            Col2 = $"{x.Kol_Title}",
+                            Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                            Col4 = x.Remain_First_Credit ?? decimal.Zero,
+                            Col5 = x.Flow_Debit ?? decimal.Zero,
+                            Col6 = x.Flow_Credit ?? decimal.Zero,
+                        }).ToList();
+
+                }
+                else if (requestDB.TarazKolOrTarazMoeen == "2" || requestDB.TarazKolOrTarazMoeen == "3")
+                {
+                     rows = financialRecords
+                        .Where(x => (x.Kol_Code[0] != '6'))
+                        .Select(x => new ExcelRow
+                        {
+                            Col1 = $"{x.Kol_Code}_{x.Moeen_Code}",
+                            Col2 = $"{x.Kol_Title}_{x.Moeen_Title}",
+                            Col3 = x.Remain_First_Debit ?? decimal.Zero,
+                            Col4 = x.Remain_First_Credit ?? decimal.Zero,
+                            Col5 = x.Flow_Debit ?? decimal.Zero,
+                            Col6 = x.Flow_Credit ?? decimal.Zero,
+                        }).ToList();
+                }
+
+                List<ExcelRow> mergedRows = new List<ExcelRow>();
+                // چک کردن بالانس ها
+                if (requestDB.GardeshOrMandeh == "1")
+                {
+                    // محاسبه مانده برای هر رکورد
+                    var rowsEditRemain = await _calculateNewRows.Calculate_New_rows(rows);
+                    // یونیک کردن رکوردها بر اساس کد
+                     mergedRows = _balanceMerge.MergeDuplicateRows(rowsEditRemain);
+
+                    decimal totalBed = mergedRows.Sum(r => r.Col3);
+                    decimal totalBes = mergedRows.Sum(r => r.Col4);
+                    var ekhtelaf = totalBed - totalBes;
+
+                    if (totalBed != totalBes)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"Not Balance with  {ekhtelaf}"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                        string formatted = ekhtelaf.ToString("#,##0.##");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"تراز {tarazName} به مقدار {formatted} بالانس نمیباشد." }
+                            },
+                        requestDB.FolderPath
+                        );
+                    }
+                }
+                else if (requestDB.GardeshOrMandeh == "2")
+                {
+                    // یونیک کردن رکوردها بر اساس کد
+                    mergedRows = _balanceMerge.MergeDuplicateGardeshRows(rows);;
+
+                    decimal totalBed = mergedRows.Sum(r => r.Col5 ?? 0);
+                    decimal totalBes = mergedRows.Sum(r => r.Col6 ?? 0);
+                    var ekhtelaf = totalBed - totalBes;
+
+                    if (totalBed != totalBes)
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject($"Not Balance with  {ekhtelaf}"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                        string formatted = ekhtelaf.ToString("#,##0.##");
+
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $"تراز {tarazName} به مقدار {formatted} بالانس نمیباشد." }
+                            },
+                        requestDB.FolderPath
+                        );
+                    }
+                }
+
+                return await Task.FromResult(mergedRows);
+            }
+            catch (ConnectionMessageException ex)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"CompareBalance:SetExcelRowAsync --typeReport:Error");
+                throw;
+            }
+        }
+
+        // تولید جدول تراز مانده برای همراه، سما و کاربردی 
+        public async Task<MemoryStream> GenerateAllTableAsync(List<FinancialRecord> financialRecords, List<ExcelRow> mergedRows, IExcelExporter excelExporter, DBRequestDto requestDB)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateTablesAsync"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Info");
+                // دو جدول اماده میشود، یکی برای گزارش و یکی برای اپلود 
+                var workbookReport = excelExporter.GetWorkbookReport();
+                var workbookUpload = excelExporter.GetWorkbookUpload();
+                // تولید شیت خام برای گزارش دهی 
+                var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
+                streamReport.Position = 0;               
+
+                // بررسی بالانس بودن  تراز 
+                mergedRows = await _balanceCheck.checkBalance(mergedRows, excelExporter, requestDB, streamReport);
+
+                // افوزدن شیت تراز محاسبه شده به  فایل اکسل اپلود  و فایل گزارش
+                var worksheetUpload = workbookUpload.Worksheets.Add("Data");
+                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
+                worksheetUpload.RightToLeft = true;
+                worksheetReport.RightToLeft = true;
+                //سطر اول تراز خالی است 
+                int row = 2;
+                int writeValue = 0;
+
+                foreach (var item in mergedRows)
+                {
+                    // بررسی گزینه انتخاب شده : همه رکورد ها یا فقط مانده دار ها 
+                    // AllOrHasMandeh
+                    // همه 1
+                    // فقط مانده داره ها 2
+                    if (requestDB.AllOrHasMandeh == "2" && item.Col3 - item.Col4 == 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        worksheetUpload.Cell(row, 1).Value = item.Col1;
+                        worksheetUpload.Cell(row, 2).Value = item.Col2;
+                        worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
+                        worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
+
+                        worksheetReport.Cell(row, 1).Value = item.Col1;
+                        worksheetReport.Cell(row, 2).Value = item.Col2;
+                        worksheetReport.Cell(row, 3).Value = item.Col3;
+                        worksheetReport.Cell(row, 4).Value = item.Col4;
+
+                        row++;
+                        writeValue++;
+                    }
+
+                }
+
+                // در صورتی که همه رکورد ها بدون مانده باشند ، هیچ رکوردی در اکسل نوشته نمی شود
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+                //استایل دهی به گزارش 
+                worksheetReport.Style.Font.FontName = "B Nazanin";
+                worksheetReport.Style.Font.FontSize = 11;
+
+                var range = worksheetReport.Range("C:D");
+                range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
+
+                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReport.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                var usedRange = worksheetReport.RangeUsed();
+
+                if (usedRange != null)
+                {
+                    worksheetReport.Columns().AdjustToContents();
+                    usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                }
+                streamReport.Position = 0;
+
+
+                // ذخیره فایل گزارش دهی 
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+                await excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
+
+                var streamUpload = new MemoryStream();
+                workbookUpload.SaveAs(streamUpload);
+                streamUpload.Position = 0;
+                return await Task.FromResult(streamUpload);
+            }
+            catch (ConnectionMessageException)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync failed!"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
+                throw;
+            }
+
+        }
+
+
+        // تولید جدول برای تراز گردش همراه، سما و کاربردی 
+        public async Task<MemoryStream> GenerateAllTableGardeshAsync(List<FinancialRecord> financialRecords, List<ExcelRow> mergedRows, IExcelExporter excelExporter, DBRequestDto requestDB)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateTablesAsync"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Info");
+                // دو جدول اماده میشود، یکی برای گزارش و یکی برای اپلود 
+                var workbookReport = excelExporter.GetWorkbookReport();
+                var workbookUpload = excelExporter.GetWorkbookUpload();
+                // تولید شیت خام برای گزارش دهی 
+                var streamReport = await GenerateRawTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
+                streamReport.Position = 0;
+
+                // بررسی بالانس بودن  تراز 
+                mergedRows = await _balanceCheck.checkGardeshBalance(mergedRows, excelExporter, requestDB, streamReport);
+
+
+                // افوزدن شیت تراز محاسبه شده به  فایل اکسل اپلود  و فایل گزارش
+                var worksheetUpload = workbookUpload.Worksheets.Add("Data");
+                var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر");
+                worksheetUpload.RightToLeft = true;
+                worksheetReport.RightToLeft = true;
+                //سطر اول تراز خالی است 
+                int row = 2;
+                int writeValue = 0;
+
+                foreach (var item in mergedRows)
+                {
+
+                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 2).Value = item.Col2;
+                    worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
+                    worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
+
+                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 2).Value = item.Col2;
+                    worksheetReport.Cell(row, 3).Value = item.Col5;
+                    worksheetReport.Cell(row, 4).Value = item.Col6;
+
+                    row++;
+                    writeValue++;
+
+                }
+
+                // در صورتی که همه رکورد ها بدون مانده باشند ، هیچ رکوردی در اکسل نوشته نمی شود
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+                //استایل دهی به گزارش 
+                worksheetReport.Style.Font.FontName = "B Nazanin";
+                worksheetReport.Style.Font.FontSize = 11;
+
+                var range = worksheetReport.Range("C:D");
+                range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
+
+                worksheetReport.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheetReport.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                var usedRange = worksheetReport.RangeUsed();
+
+                if (usedRange != null)
+                {
+                    worksheetReport.Columns().AdjustToContents();
+                    usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                }
+                streamReport.Position = 0;
+
+                // ذخیره فایل گزارش دهی 
+                workbookReport.SaveAs(streamReport);
+                streamReport.Position = 0;
+                await excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
+
+                var streamUpload = new MemoryStream();
+                workbookUpload.SaveAs(streamUpload);
+                streamUpload.Position = 0;
+                return await Task.FromResult(streamUpload);
+            }
+            catch (ConnectionMessageException ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject($"GenerateTablesAsync failed! {ex}"), $"BalanceGenerator:GenerateTablesAsync --typeReport:Error");
+                throw;
+            }
+
+        }
+
+        // تولید جدول  تراز خام برای همراه و سما و کاربردی
+        public async Task<MemoryStream> GenerateRawTablesAsync(List<FinancialRecord> financialRecords, IExcelExporter excelExporter, XLWorkbook workbook, DBRequestDto requestDB)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting GenerateRawTablesAsync"), $"BalanceGenerator:GenerateRawTablesAsync --typeReport:Info");
+                var worksheet = workbook.Worksheets.Add("تراز خام");
+                worksheet.RightToLeft = true;
+                int row = 1;
+
+                // عنوان ستون ها  تنظیم میشود
+                worksheet.Cell(row, 1).Value = "Kol_Code";
+                worksheet.Cell(row, 2).Value = "Kol_Title";
+                worksheet.Cell(row, 3).Value = "Moeen_Code";
+                worksheet.Cell(row, 4).Value = "Moeen_Title";
+                worksheet.Cell(row, 5).Value = "Tafsil_Code";
+                worksheet.Cell(row, 6).Value = "Tafsil_Tilte";
+                worksheet.Cell(row, 7).Value = "FinApplication_Title";
+                worksheet.Cell(row, 8).Value = "AccountNature_ID";
+                worksheet.Cell(row, 9).Value = "AccountNature_Title";
+                worksheet.Cell(row, 10).Value = "Motamam";
+                worksheet.Cell(row, 11).Value = "Remain_First_Credit";
+                worksheet.Cell(row, 12).Value = "Remain_First_Debit";
+                worksheet.Cell(row, 13).Value = "Flow_Credit";
+                worksheet.Cell(row, 14).Value = "Flow_Debit";
+                worksheet.Cell(row, 15).Value = "Remain_Last_Credit";
+                worksheet.Cell(row, 16).Value = "Remain_last_Debit";
+                row = 2;
+                int writeValue = 0;
+
+                foreach (var item in financialRecords)
+                {
+                    // بررسی گزینه همه رکوردها یا فقط مانده دار ها 
+                    if (requestDB.AllOrHasMandeh == "2" && await Calculate_Last_Remain(item) && requestDB.GardeshOrMandeh == "1")
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        worksheet.Cell(row, 1).Value = item.Kol_Code;
+                        worksheet.Cell(row, 2).Value = item.Kol_Title;
+                        worksheet.Cell(row, 3).Value = item.Moeen_Code;
+                        worksheet.Cell(row, 4).Value = item.Moeen_Title;
+                        worksheet.Cell(row, 5).Value = item.Tafzil_Code;
+                        worksheet.Cell(row, 6).Value = item.Tafzil_Tilte;
+                        worksheet.Cell(row, 7).Value = item.FinApplication_Title;
+                        worksheet.Cell(row, 8).Value = item.AccountNature_ID;
+                        worksheet.Cell(row, 9).Value = item.AccountNature_Title;
+                        worksheet.Cell(row, 10).Value = item.Motamam;
+                        worksheet.Cell(row, 11).Value = item.Remain_First_Credit;
+                        worksheet.Cell(row, 12).Value = item.Remain_First_Debit;
+                        worksheet.Cell(row, 13).Value = item.Flow_Credit;
+                        worksheet.Cell(row, 14).Value = item.Flow_Debit;
+                        worksheet.Cell(row, 15).Value = item.Remain_Last_Credit;
+                        worksheet.Cell(row, 16).Value = item.Remain_last_Debit;
+
+                        row++;
+
+                        writeValue++;
+                    }
+                }
+                // اگر همه ستون دار ها بدون مانده باشد، هیچ رکوردی در اکسل نوشته نمیشود 
+                if (writeValue == 0)
+                {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"All records dont have mande."), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+
+                    throw new ConnectionMessageException(
+                        new ConnectionMessage
+                        {
+                            MessageType = MessageType.Error,
+                            Messages = new List<string> { $"تمام سطرها بدون مانده میباشد." }
+                        },
+                    requestDB.FolderPath
+                    );
+                }
+
+                // استایل دهی به اکسل گزارش دهی
+                worksheet.Style.Font.FontName = "B Nazanin";
+                worksheet.Style.Font.FontSize = 11;
+
+                var range = worksheet.Range("K:P");
+                range.Style.NumberFormat.Format = "#,##0_);[Red](#,##0)";
+
+                worksheet.Columns().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                worksheet.Column("B").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                worksheet.Column("D").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                var usedRange = worksheet.RangeUsed();
+
+                if (usedRange != null)
+                {
+                    worksheet.Columns().AdjustToContents();
+                    usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                var headerRange = worksheet.Range("A1:P1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LapisLazuli;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+                return await Task.FromResult(stream);
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:GenerateRawTablesAsync --typeReport:Error");
+
+                throw new ConnectionMessageException(
+                    new ConnectionMessage
+                    {
+                        MessageType = MessageType.Error,
+                        Messages = new List<string> { "خطا در تولید جدول تراز خام" }
+                    },
+                requestDB.FolderPath
+                );
+            }
+        }
+
+
+        public async Task<bool> Calculate_Last_Remain(FinancialRecord Record)
+        {
+            try
+            {
+                decimal bed = 0;
+                decimal bes = 0;
+
+                // mandeh bedehkar
+                if (Record.Remain_First_Debit < 0)
+                {
+                    bes += Math.Abs(Record.Remain_First_Debit ?? decimal.Zero);
+                }
+                else if (Record.Remain_First_Debit >= 0)
+                {
+                    bed += Math.Abs(Record.Remain_First_Debit ?? decimal.Zero);
+                }
+
+                // mandeh bestankar
+                if (Record.Remain_First_Credit < 0)
+                {
+                    bed += Math.Abs(Record.Remain_First_Credit ?? decimal.Zero);
+                }
+                else if (Record.Remain_First_Credit >= 0)
+                {
+                    bes += Math.Abs(Record.Remain_First_Credit ?? decimal.Zero);
+                }
+
+                // gardesh bedehkar
+                if (Record.Flow_Debit < 0)
+                {
+                    bes += Math.Abs(Record.Flow_Debit ?? decimal.Zero);
+                }
+                if (Record.Flow_Debit >= 0)
+                {
+                    bed += Math.Abs(Record.Flow_Debit ?? decimal.Zero);
+                }
+
+                //gardesh bestankar
+                if (Record.Flow_Credit < 0)
+                {
+                    bed += Math.Abs(Record.Flow_Credit ?? decimal.Zero);
+                }
+                else if (Record.Flow_Credit >= 0)
+                {
+                    bes += Math.Abs(Record.Flow_Credit ?? decimal.Zero);
+                }
+
+                // mandeh
+                if (bed - bes == 0)
+                {
+                    return await Task.FromResult(true);
+                }
+                else
+                {
+                    return await Task.FromResult(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"BalanceGenerator:Calculate_Last_Remain --typeReport:Error");
+                throw;
+            }
+
+        }
+
+    }
+}
+
+

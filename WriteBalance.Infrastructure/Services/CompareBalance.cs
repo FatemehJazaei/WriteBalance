@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -30,6 +31,7 @@ namespace WriteBalance.Infrastructure.Services
             _calculateNewRows = calculateNewRows;
         }
 
+  
         public async Task<List<ExcelRow>> SetExcelRowAsync(List<FinancialRecord> financialRecords)
         {
             try

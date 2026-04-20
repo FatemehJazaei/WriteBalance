@@ -113,6 +113,7 @@ class Program
                     services.AddSingleton<IBalanceGenerator, BalanceGenerator>();
                     services.AddSingleton<IPouyaBalanceGenerator, PouyaBalanceGenerator>();
                     services.AddSingleton<IGLBalanceGenerator, GLBalanceGenerator>();
+                    services.AddSingleton<IAllBalanceGenerator, AllBalanceGenerator>();             
                     services.AddSingleton<IRayanBalanceGenerator, RayanBalanceGenerator>();
                     services.AddScoped<IFinancialRepository, FinancialRepository>();
                     services.AddScoped<IPeriodRepository, PeriodRepository>();

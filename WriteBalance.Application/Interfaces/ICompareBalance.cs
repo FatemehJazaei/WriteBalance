@@ -17,5 +17,6 @@ namespace WriteBalance.Application.Interfaces
           Task<List<ExcelRow>> CreateAllExcelRowAsync(List<ExcelRow> samaExcelRow, List<ExcelRow> hamrahExcelRow, List<ExcelRow> karbourdiExcelRow, List<ExcelRow> rayanExcelRow, List<ExcelRow> pouyaExcelRow);
           Task<List<CompareRows>> CompareBalanceAsync(List<ExcelRow> allFinancialRecords, List<ExcelRow> GLFinancialRecords,  DBRequestDto requestDB);
           Task WriteExcelAsync(List<CompareRows> ExcelRows, IExcelExporter excelExporter, DBRequestDto requestDB);
+
     }
 }
