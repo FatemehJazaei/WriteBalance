@@ -191,7 +191,7 @@ namespace WriteBalance.Infrastructure.Services
             }
                 */
                 // چک کردن نوع تراز
-                if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5" && config["tarazType"] != "6" && config["tarazType"] != "7" && config["tarazType"] != "8")
+                if (config["tarazType"] != "-1" && config["tarazType"] != "1" && config["tarazType"] != "2" && config["tarazType"] != "3" && config["tarazType"] != "4" && config["tarazType"] != "5" && config["tarazType"] != "6" && config["tarazType"] != "7" && config["tarazType"] != "8" && config["tarazType"] != "9" && config["tarazType"] != "10")
                 {
                     Logger.WriteEntry(JsonConvert.SerializeObject("tarazType is invalid"), $"CheckInput--typeReport:Error");
 
@@ -254,7 +254,7 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
                 // برای تراز پویا نوع تراز پویا چک میشود
-                if (config["tarazType"] == "5")
+                if (config["tarazType"] == "2")
                 {
                     if (config["tarazTypePouya"] != "1" && config["tarazTypePouya"] != "2" && config["tarazTypePouya"] != "3")
                     {

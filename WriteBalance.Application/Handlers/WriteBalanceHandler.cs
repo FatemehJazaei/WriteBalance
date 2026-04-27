@@ -144,15 +144,15 @@ namespace WriteBalance.Application.Handlers
                     }
 
                 }
-                else if (requestDB.TarazType == "1" || requestDB.TarazType == "3" || requestDB.TarazType == "4") // یکی از تراز های سما، همراه و کاربردی
+                else if (requestDB.TarazType == "1" || requestDB.TarazType == "3" || requestDB.TarazType == "4" || requestDB.TarazType == "10" || requestDB.TarazType == "9") // یکی از تراز های سما، همراه و کاربردی
                 {
                     return await Handle_Hamrah_Karbordi_Sama_Async(request, requestDB);
                 }
-                else if (requestDB.TarazType == "2") // تراز رایان
+                else if (requestDB.TarazType == "5") // تراز رایان
                 {
                     return await Handle_Rayan_Async(request, requestDB); ;
                 }
-                else if (requestDB.TarazType == "5") // تراز پویا
+                else if (requestDB.TarazType == "2") // تراز پویا
                 {
                     return await Handle_Poya_Async(request, requestDB);
                 }
@@ -408,6 +408,16 @@ namespace WriteBalance.Application.Handlers
                 case "4":
                     request.BalanceName = $"{balanceName} تراز {isGardesh} همراه {timestamp}";
                     break;
+                case "10":
+                    //rayan
+                    requestDB.TarazType = "5";
+                    request.BalanceName = $"{balanceName} تراز {isGardesh} رایان {timestamp}";
+                    break;
+                case "9":
+                    // pouya
+                    requestDB.TarazType = "2";
+                    request.BalanceName = $"{balanceName} تراز {isGardesh} پویا {timestamp}";
+                    break;
             }
 
             (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
@@ -591,7 +601,7 @@ namespace WriteBalance.Application.Handlers
             Logger.WriteEntry(JsonConvert.SerializeObject($"SetExcelRowAsync_karbourdi done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
             //تراز رایان 
-            requestDB.TarazType = "2";
+            requestDB.TarazType = "5";
             var rayanFinancialRecord = _financialRepository.ExecuteRayanSPList(request, requestDB, startTimeStr, endTimeStr, false);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteRayanSPList done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
@@ -599,7 +609,7 @@ namespace WriteBalance.Application.Handlers
             Logger.WriteEntry(JsonConvert.SerializeObject($"SetExcelRowAsync_rayan done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
             //تراز پویا 
-            requestDB.TarazType = "5";
+            requestDB.TarazType = "2";
             var pouyaFinancialRecord = _financialRepository.ExecutePoyaSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecutePoyaSPList done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
@@ -716,7 +726,7 @@ namespace WriteBalance.Application.Handlers
             try
             {
                 //تراز رایان 
-                requestDB.TarazType = "2";
+                requestDB.TarazType = "5";
                 rayanFinancialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList_rayan done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
@@ -733,7 +743,7 @@ namespace WriteBalance.Application.Handlers
             try
             {
                 //تراز پویا 
-                requestDB.TarazType = "5";
+                requestDB.TarazType = "2";
                 pouyaFinancialRecord = _financialRepository.ExecuteSPList(request, requestDB, startTimeStr, endTimeStr);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"ExecuteSPList_Poya  done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
