@@ -296,6 +296,9 @@ namespace WriteBalance.Application.Handlers
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
             Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
+            requestDB = _checkInput.CheckPouyaType(requestDB, startTimeStr, endTimeStr);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckPouyaType done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
+
             var financialRecord = _financialRepository.ExecutePoyaSPList(request, requestDB, startTimeStr, endTimeStr);
             Logger.WriteEntry(JsonConvert.SerializeObject($"ExecutePoyaSPList done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 

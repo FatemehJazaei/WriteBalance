@@ -21,6 +21,33 @@ namespace WriteBalance.Infrastructure.Services
 {
     public class CheckInput: ICheckInput
     {
+        // چک کردن نوع تراز پویا
+        // تنها در صورتی که کاربر  
+        //TarazTypePouya = 4 
+        //را انتخاب کرده باشد، یعنی تراز نوع 1 و 2 و 3 را انتخا نکرده است و حالت اتوماتیک و پیشفرض برای آن قرار میگیرد
+        // برای دریافت تراز سالانه مقدار نوع تراز پویا ؛ نوع 2 است 
+        // برای دوره های زمانی دیگر نوع تراز پیش فرض نوع 3 است
+        public DBRequestDto CheckPouyaType(DBRequestDto requestDB, string startDateTime, string endDateTime)
+        {
+            try
+            {
+                // دوره مالی سالانه
+                if (requestDB.TarazTypePouya == "4" && startDateTime.Substring(4, 4).Contains("0101") && (endDateTime.Substring(4, 4).Contains("1229") || endDateTime.Substring(4, 4).Contains("1230")) && startDateTime.Substring(0, 4) == endDateTime.Substring(0, 4))
+                {
+                    requestDB.TarazTypePouya= "2";
+                }
+                else
+                {
+                    requestDB.TarazTypePouya = "3";
+                }
+
+                    return requestDB;
+            }
+            catch (ConnectionMessageException)
+            {
+                throw;
+            }
+        }
         //بررسی ورودیها 
         public (string, string) CheckDateInput(DBRequestDto requestDB, DateTime startDateTime, DateTime endDateTime)
         {
@@ -256,7 +283,7 @@ namespace WriteBalance.Infrastructure.Services
                 // برای تراز پویا نوع تراز پویا چک میشود
                 if (config["tarazType"] == "2")
                 {
-                    if (config["tarazTypePouya"] != "1" && config["tarazTypePouya"] != "2" && config["tarazTypePouya"] != "3")
+                    if (config["tarazTypePouya"] != "1" && config["tarazTypePouya"] != "2" && config["tarazTypePouya"] != "3" && config["tarazTypePouya"] != "4")
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject("tarazTypePouya is empty"), $"CheckInput--typeReport:Error");
 
