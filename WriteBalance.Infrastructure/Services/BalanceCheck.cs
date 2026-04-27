@@ -101,6 +101,20 @@ namespace WriteBalance.Infrastructure.Services
                         }
                     }
                 }
+
+                //  برای همه ترازها چک میکند که حداقل یک رکورد وجود داشته باشد که از کد 2 و کد 5 دارای مانده باشد 
+                if (!mergedRows.Any(x => (x.Col1[0] == '2' && x.Col3 - x.Col4 != 0)) || !mergedRows.Any(x => (x.Col1[0] == '5' && x.Col3 - x.Col4 != 0)))
+                {
+                    throw new ConnectionMessageException(
+                         new ConnectionMessage
+                         {
+                             MessageType = MessageType.Error,
+                             Messages = new List<string> { $"کد 2 و 5 در این تراز وجود ندارد" }
+                         },
+                     requestDB.FolderPath
+                     );
+                }
+
                 return await Task.FromResult(mergedRows);
             }
             catch (ConnectionMessageException)
@@ -193,6 +207,20 @@ namespace WriteBalance.Infrastructure.Services
                         }
                     }
                 }
+
+                //  برای همه ترازهای گردش چک میکند که حداقل یک رکورد وجود داشته باشد که از کد 2 و کد 5 دارای مانده باشد 
+                if (!mergedRows.Any(x => (x.Col1[0] == '2' && x.Col5 - x.Col6 != 0)) || !mergedRows.Any(x => (x.Col1[0] == '5' && x.Col5 - x.Col6 != 0)))
+                {
+                    throw new ConnectionMessageException(
+                         new ConnectionMessage
+                         {
+                             MessageType = MessageType.Error,
+                             Messages = new List<string> { $"کد 2 و 5 در این تراز وجود ندارد" }
+                         },
+                     requestDB.FolderPath
+                     );
+                }
+
                 return await Task.FromResult(mergedRows);
             }
             catch (ConnectionMessageException)
