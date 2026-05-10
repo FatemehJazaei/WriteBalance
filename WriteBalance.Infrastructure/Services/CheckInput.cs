@@ -231,7 +231,22 @@ namespace WriteBalance.Infrastructure.Services
                     Path.Combine(config["op"], config["of"])
                     );
                 }
+                if (config["tarazType"] == "1" ||  config["tarazType"] == "3" || config["tarazType"] == "4" || config["tarazType"] == "6" || config["tarazType"] == "7" || config["tarazType"] == "8" || config["tarazType"] == "9" || config["tarazType"] == "10")
+                {
+                    if (config["beforeClose"] != "1" && config["beforeClose"] != "2")
+                    {
+                        Logger.WriteEntry(JsonConvert.SerializeObject("beforeClose is invalid"), $"CheckInput--typeReport:Error");
 
+                        throw new ConnectionMessageException(
+                            new ConnectionMessage
+                            {
+                                MessageType = MessageType.Error,
+                                Messages = new List<string> { $" ورودی نامعتبر " }
+                            },
+                        Path.Combine(config["op"], config["of"])
+                        );
+                    }
+                }
                 //چک کردن تراز از نوع گردش یا از نوع مانده
                 // مانده 1 
                 // گردش 2

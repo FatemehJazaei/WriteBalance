@@ -304,7 +304,7 @@ namespace WriteBalance.Infrastructure.Repositories
                                     requestDB.UserNameDB,
                                     requestDB.PtokenDB,
                                     requestDB.ObjecttokenDB,
-                                   $"{startTimePersian},{endTimePersian},{requestDB.TarazType}",
+                                   $"{startTimePersian},{endTimePersian},{requestDB.TarazType},{requestDB.BeforeClose}",
                                     requestDB.OrginalClientAddressDB
                                 )
                                 .ToList();

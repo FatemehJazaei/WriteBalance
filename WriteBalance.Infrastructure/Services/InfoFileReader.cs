@@ -95,6 +95,9 @@ namespace WriteBalance.Infrastructure.Services
                 // GL 6
                 // ekhtelaf GL AND All 7
                 config["tarazType"] = "7";
+                // 1 default
+                // 2 before close
+                config["beforeClose"] = "1";
                 config["tarazTypePouya"] = "1";
                 config["AllOrHasMandeh"] = "1";
                 config["PrintOrReport"] = "1";

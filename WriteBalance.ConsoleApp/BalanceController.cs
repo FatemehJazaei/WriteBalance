@@ -76,6 +76,7 @@ namespace WriteBalanceConsoleApp
                 {
                     //rayan
                     config["tarazTypePouya"] = "";
+                    config["GardeshOrMandeh"] = "";
                 }
                 if (config["tarazType"] == "2")
                 {
@@ -84,6 +85,7 @@ namespace WriteBalanceConsoleApp
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
                     config["ExceptVoucherNum"] = "";
+                    config["GardeshOrMandeh"] = "";
                 }
 
                 // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها
@@ -115,6 +117,7 @@ namespace WriteBalanceConsoleApp
                     ToVoucherNum = config["ToVoucherNum"],
                     PrintOrReport = config["PrintOrReport"],
                     TarazKolOrTarazMoeen = config["TarazKolOrTarazMoeen"],
+                    BeforeClose = config["beforeClose"],
                     FolderPath = folderPath,
                     FileName = "",
                     ExceptCode = ExceptCodes,
