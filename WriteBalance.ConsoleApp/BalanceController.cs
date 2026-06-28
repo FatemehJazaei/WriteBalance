@@ -32,7 +32,7 @@ namespace WriteBalanceConsoleApp
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
                 // ورودی ها چک میشود
                 var InputValid = _checkInput.CheckUserInput(config);
-
+                _checkInput.CheckBeforeClose(config);
                 //rayan
                 //کدهای حذفی چک میشود
                 List<ExceptCode> ExceptCodes = new List<ExceptCode>();

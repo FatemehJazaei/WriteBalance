@@ -15,5 +15,6 @@ namespace WriteBalance.Application.Interfaces
         bool CheckUserInput(Dictionary<string, string> config);
         List<ExceptCode> CheckExceptCode(Dictionary<string, string> config);
         List<string> CheckVoucherNumInput(Dictionary<string, string> config);
+        DBRequestDto CheckBeforeClose(DBRequestDto requestDB, string startDateTime, string endDateTime);
     }
 }

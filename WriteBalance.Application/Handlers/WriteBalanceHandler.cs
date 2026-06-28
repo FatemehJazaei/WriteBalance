@@ -656,6 +656,9 @@ namespace WriteBalance.Application.Handlers
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
             Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
+            requestDB = _checkInput.CheckBeforeClose(requestDB, startTime, endTime);
+            Logger.WriteEntry(JsonConvert.SerializeObject($"CheckDateInput done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
+
             var errors = new List<string>();
             var resultHamrah = false;
             var resultSama = false;
