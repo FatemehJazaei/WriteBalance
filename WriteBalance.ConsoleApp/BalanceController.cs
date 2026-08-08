@@ -34,7 +34,6 @@ namespace WriteBalanceConsoleApp
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting InputBalanceController ..."), $"BalanceController--typeReport:Info");
                 // ورودی ها چک میشود
                 var InputValid = _checkInput.CheckUserInput(config);
-
                 //rayan
                 //کدهای حذفی چک میشود
                 List<ExceptCode> ExceptCodes = new List<ExceptCode>();
@@ -66,7 +65,7 @@ namespace WriteBalanceConsoleApp
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
                 //چون از سه مدیریت  ارتباط استفاده میکنیم، متغیرهای تراز های دیگر در این قسمت مقداردهی میشود
                 // sama , karbourdi, hamrah 
-                if (config["tarazType"] == "1" || config["tarazType"] == "3" || config["tarazType"] == "4" || config["tarazType"] == "6" || config["tarazType"] == "7" || config["tarazType"] == "8" || config["tarazType"] == "9" || config["tarazType"] == "10")
+                if (config["tarazType"] == "-1" || config["tarazType"] == "1" || config["tarazType"] == "3" || config["tarazType"] == "4" || config["tarazType"] == "6" || config["tarazType"] == "7" || config["tarazType"] == "8" || config["tarazType"] == "9" || config["tarazType"] == "10")
                 {
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
@@ -89,9 +88,6 @@ namespace WriteBalanceConsoleApp
                     config["ExceptVoucherNum"] = "";
                     config["GardeshOrMandeh"] = "";
                 }
-
-                //  دریافت کد تراز پویا 
-                var PouyaCodings = await getPooyaCoding.ExecuteAsync(folderPath);
 
                 // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها
                 var request = new APIRequestDto

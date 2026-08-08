@@ -48,6 +48,29 @@ namespace WriteBalance.Infrastructure.Services
                 throw;
             }
         }
+        //برای برای دوره مالی سالانه میتوان حالت قبل بستن را دریافت کرد، در بقیه موارد به صورت پیش فرض بعد بستن دریافت میشود 
+        public DBRequestDto CheckBeforeClose(DBRequestDto requestDB, string startDateTime, string endDateTime)
+        {
+            try
+            {
+                // دوره مالی سالانه
+                if (startDateTime.Substring(4, 4).Contains("0101") && (endDateTime.Substring(4, 4).Contains("1229") || endDateTime.Substring(4, 4).Contains("1230")) && startDateTime.Substring(0, 4) == endDateTime.Substring(0, 4))
+                {
+                   
+                }
+                else
+                {
+                    requestDB.BeforeClose = "1";
+                }
+
+                return requestDB;
+            }
+            catch (ConnectionMessageException)
+            {
+                throw;
+            }
+        }
+
         //بررسی ورودیها 
         public (string, string) CheckDateInput(DBRequestDto requestDB, DateTime startDateTime, DateTime endDateTime)
         {
