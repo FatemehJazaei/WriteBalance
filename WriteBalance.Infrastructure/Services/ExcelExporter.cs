@@ -21,6 +21,7 @@ namespace WriteBalance.Infrastructure.Services
         private  XLWorkbook _workbookReport;
         private XLWorkbook _workbookGardesh;
         private  XLWorkbook _workbookUploadArzi;
+        private XLWorkbook _workbookPouyaNotFound;
 
         public ExcelExporter()
         {
@@ -28,6 +29,13 @@ namespace WriteBalance.Infrastructure.Services
             _workbookReport = new XLWorkbook();
             _workbookGardesh = new XLWorkbook();
             _workbookUploadArzi = new XLWorkbook();
+            _workbookPouyaNotFound = new XLWorkbook();
+        }
+
+        public XLWorkbook GetWorkbookPouyaNotFound()
+        {
+            _workbookPouyaNotFound = new XLWorkbook();
+            return _workbookPouyaNotFound;
         }
 
         public XLWorkbook GetWorkbookReport()
@@ -94,7 +102,44 @@ namespace WriteBalance.Infrastructure.Services
             }
 
         }
-        
+
+
+        public async Task SavePouyaNotFoundAsync(MemoryStream stream, string path, string fileName)
+        {
+            try
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SaveReportAsync"), $"ExcelExporter: SaveReportAsync --typeReport:Info");
+                string folderPath = Path.Combine(path, fileName);
+                _workbookPouyaNotFound.SaveAs(folderPath);
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveReportAsync --typeReport:Error");
+                throw;
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.SetLength(0);
+                    stream.Position = 0;
+                    stream.Dispose();
+                }
+
+                if (_workbookPouyaNotFound != null)
+                {
+                    if (_workbookPouyaNotFound.Worksheets.Contains("NotFound"))
+                    {
+                        _workbookPouyaNotFound.Worksheets.Delete("NotFound");
+                    }
+                    _workbookPouyaNotFound.Dispose();
+                }
+            }
+
+        }
+
+
         // ذخیره فایل اکسل تراز اکسیر
         public async Task SaveUploadAsync(MemoryStream stream, string path, string fileName)
         {

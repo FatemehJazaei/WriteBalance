@@ -19,9 +19,11 @@ namespace WriteBalanceConsoleApp
     {
         private readonly WriteBalanceHandler _writeBalanceHandler;
         private readonly ICheckInput _checkInput;
+        private readonly GetPooyaCoding getPooyaCoding;
         public BalanceController( WriteBalanceHandler writeBalanceHandler, ICheckInput checkInput) 
         {
             _writeBalanceHandler = writeBalanceHandler; 
+
             _checkInput = checkInput;
 
         }
@@ -88,6 +90,9 @@ namespace WriteBalanceConsoleApp
                     config["GardeshOrMandeh"] = "";
                 }
 
+                //  دریافت کد تراز پویا 
+                var PouyaCodings = await getPooyaCoding.ExecuteAsync(folderPath);
+
                 // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها
                 var request = new APIRequestDto
                 {
@@ -122,6 +127,7 @@ namespace WriteBalanceConsoleApp
                     FileName = "",
                     ExceptCode = ExceptCodes,
                     ExceptVoucherNum = ExceptVoucherNum,
+                    PouyaCodings = PouyaCodings,
                 };
 
                 // اطلاعات به  کلاس مدیریت عملیات ارسال میشود و فرایند استارت میشود

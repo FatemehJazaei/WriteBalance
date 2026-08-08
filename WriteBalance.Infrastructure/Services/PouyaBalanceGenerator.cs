@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -20,10 +21,12 @@ namespace WriteBalance.Infrastructure.Services
     {
         public BalanceMerge _balanceMerge;
         public BalanceCheck _balanceCheck;
-        public PouyaBalanceGenerator(BalanceMerge balanceMerge, BalanceCheck balanceCheck)
+        public CheckCodingPouya  _checkCoding;
+        public PouyaBalanceGenerator(BalanceMerge balanceMerge, BalanceCheck balanceCheck, CheckCodingPouya checkCoding)
         {
             _balanceMerge = balanceMerge;
             _balanceCheck = balanceCheck;
+            _checkCoding = checkCoding;
         }
 
 
@@ -75,6 +78,9 @@ namespace WriteBalance.Infrastructure.Services
                 // بررسی بالانس بودن  تراز 
                 mergedRows = await _balanceCheck.checkBalance(mergedRows, excelExporter, requestDB, streamReport);
 
+                // بررسی بالانس بودن  تراز 
+                mergedRows = await _checkCoding.HandelNotFoundExcelAsync(mergedRows,  excelExporter,  requestDB);
+
                 // اضافه کردن شیت برای تراز محاسبه شده اکسیر برای اپلود و گزارش دهی 
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
                 var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر ریالی");
@@ -100,7 +106,8 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReport.Cell(row, 1).Value = item.Col1;
                         worksheetReport.Cell(row, 2).Value = item.Col2;
                         worksheetReport.Cell(row, 3).Value = item.Col3;
-                        worksheetReport.Cell(row, 4).Value = item.Col4; ;
+                        worksheetReport.Cell(row, 4).Value = item.Col4;
+                        worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings.GetValueOrDefault(item.Col1)??"";
 
                         row++;
                         writeValue++;
@@ -317,6 +324,8 @@ namespace WriteBalance.Infrastructure.Services
                 // بررسی بالانس بودن  تراز 
                 mergedRows = await _balanceCheck.checkGardeshBalance(mergedRows, excelExporter, requestDB, streamReport);
 
+                mergedRows = await _checkCoding.HandelNotFoundExcelAsync(mergedRows, excelExporter, requestDB);
+
                 // اضافه کردن شیت برای تراز محاسبه شده اکسیر برای اپلود و گزارش دهی 
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
                 var worksheetReport = workbookReport.Worksheets.Add("تراز اکسیر ریالی");
@@ -335,7 +344,8 @@ namespace WriteBalance.Infrastructure.Services
                     worksheetReport.Cell(row, 1).Value = item.Col1;
                     worksheetReport.Cell(row, 2).Value = item.Col2;
                     worksheetReport.Cell(row, 3).Value = item.Col5;
-                    worksheetReport.Cell(row, 4).Value = item.Col6; ;
+                    worksheetReport.Cell(row, 4).Value = item.Col6;
+                    worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings.GetValueOrDefault(item.Col1) ?? "";
 
                     row++;
                     writeValue++;

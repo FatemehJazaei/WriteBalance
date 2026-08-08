@@ -25,5 +25,6 @@ namespace WriteBalance.Application.DTOs
         public List<ExceptCode> ExceptCode { get; set; } = new List<ExceptCode>();
         public List<string> ExceptVoucherNum { get; set; } = new List<string>();
         public string BeforeClose { get; set; } = string.Empty;
+        public Dictionary<string, string> PouyaCodings { get; set; } = new();
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
 
-namespace WriteBalance.Application.Interfaces
+namespace WriteBalance.Application.Interfaces.Repository
 {
     public interface IPeriodRepository
     {

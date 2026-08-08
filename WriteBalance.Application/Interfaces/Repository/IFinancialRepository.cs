@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Domain.Entities;
 
-namespace WriteBalance.Application.Interfaces
+namespace WriteBalance.Application.Interfaces.Repository
 {
     public  interface IFinancialRepository
     {

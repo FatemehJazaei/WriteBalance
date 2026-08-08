@@ -12,6 +12,7 @@ using WriteBalance.Common.Logging;
 using WriteBalance.Infrastructure.Repositories;
 using WriteBalance.Infrastructure.Services;
 using WriteBalanceConsoleApp;
+using WriteBalance.Application.Interfaces.Repository;
 class Program
 {
     public static async Task Main(string[] args)
@@ -53,15 +54,23 @@ class Program
                    
                     string connectionString = $"Server={config["AddressServer"]};Database={config["DataBaseName"]};User Id={config["UserName"]};Password={config["Password"]};TrustServerCertificate=True;";
 
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"connectionString: {connectionString}"), $"Program:Main --typeReport:Debug");
+                    string connectionStringModules = $"Server={config["AddressServer"]};Database={config["ModulesDataBaseName"]};User Id={config["ModulesUserName"]};Password={config["ModulesPassword"]};TrustServerCertificate=True;";
+
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"connectionString: {connectionString},  connectionStringModules: {connectionStringModules}") , $"Program:Main --typeReport:Debug");
+
                     services.AddDbContext<AppDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
+                    //Modules DB
+                    services.AddDbContext<ModulesDbContext>(options =>
+                        options.UseSqlServer(connectionStringModules));
+
                     ////////////////////////////////////////////
-                    
-                     
-                   //دیتابیس برای سما و همراه و کاربردی 
-                   services.AddDbContext<BankDbContext>(options =>
+
+
+                    //دیتابیس برای سما و همراه و کاربردی 
+                    services.AddDbContext<BankDbContext>(options =>
                        options.UseSqlServer(connectionString));
 
                    // دیتابیس برای رایان
@@ -116,6 +125,7 @@ class Program
                     services.AddSingleton<IAllBalanceGenerator, AllBalanceGenerator>();             
                     services.AddSingleton<IRayanBalanceGenerator, RayanBalanceGenerator>();
                     services.AddScoped<IFinancialRepository, FinancialRepository>();
+                    services.AddScoped<IPooyaCodingRepository, PooyaCodingRepository>();
                     services.AddScoped<IPeriodRepository, PeriodRepository>();
                     services.AddScoped<ICompareBalance, CompareBalance>();
                     services.AddScoped<IFileEncoder, FileEncoder>();
@@ -146,6 +156,8 @@ class Program
                     services.AddScoped<BalanceCheck>();
                     services.AddScoped<CalculateNewRows>();
                     services.AddScoped<BalanceController>();
+                    services.AddScoped<CheckCodingPouya>();
+                    services.AddScoped<GetPooyaCoding>();
                     services.AddSingleton<Logger>();
                     
 

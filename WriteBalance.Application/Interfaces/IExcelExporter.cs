@@ -13,9 +13,12 @@ namespace WriteBalance.Application.Interfaces
         XLWorkbook GetWorkbookUpload();
         XLWorkbook GetWorkbookGardesh();
         XLWorkbook GetWorkbookUploadArzi();
+        XLWorkbook GetWorkbookPouyaNotFound();
+        
         Task SaveReportAsync(MemoryStream stream, string path, string fileName);
         Task SaveUploadAsync(MemoryStream stream, string path, string fileName);
         Task SaveGardeshAsync(MemoryStream stream, string path, string fileName);
         Task SaveUploadArziAsync(MemoryStream stream, string path, string fileName);
+        Task SavePouyaNotFoundAsync(MemoryStream stream, string path, string fileName);
     }
 }

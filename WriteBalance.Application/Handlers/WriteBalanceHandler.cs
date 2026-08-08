@@ -18,6 +18,7 @@ using System.Xml.Linq;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Application.Interfaces;
+using WriteBalance.Application.Interfaces.Repository;
 using WriteBalance.Common.Logging;
 using WriteBalance.Domain.Entities;
 
