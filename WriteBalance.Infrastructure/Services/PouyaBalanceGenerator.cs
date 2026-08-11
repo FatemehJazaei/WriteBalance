@@ -41,10 +41,6 @@ namespace WriteBalance.Infrastructure.Services
                 var workbookUpload = excelExporter.GetWorkbookUpload();
                 var workbookUploadArzi = excelExporter.GetWorkbookUploadArzi();
 
-                //  تولید جدول تراز خام برای گزارش دهی
-                var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
-                streamReport.Position = 0;
-
                 // فرآیند تولید تراز ریالی 
                 //حذف کد 6
                 List<ExcelRow> rowsRial = new List<ExcelRow>();
@@ -66,7 +62,7 @@ namespace WriteBalance.Infrastructure.Services
                     .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
                     .Select(x => new ExcelRow
                     {
-                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
+                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
                         Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
                         Col3 = x.Mande_Bed_rial ?? 0,
                         Col4 = x.Mande_Bes_rial ?? 0,
@@ -75,11 +71,19 @@ namespace WriteBalance.Infrastructure.Services
 
                 //یونیک کردن کدها
                 var mergedRows = _balanceMerge.MergeDuplicateRows(rowsRial);
-                // بررسی بالانس بودن  تراز 
-                mergedRows = await _balanceCheck.checkBalance(mergedRows, excelExporter, requestDB, streamReport);
+
+                //  تولید جدول تراز خام برای گزارش دهی
+                var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
+                streamReport.Position = 0;
 
                 // بررسی بالانس بودن  تراز 
-                mergedRows = await _checkCoding.HandelNotFoundExcelAsync(mergedRows,  excelExporter,  requestDB);
+                mergedRows = await _checkCoding.HandelNotFoundExcelAsync(mergedRows, excelExporter, requestDB);
+
+                //یونیک کردن کدها
+                mergedRows = _balanceMerge.MergeDuplicateRows(rowsRial);
+
+                // بررسی بالانس بودن  تراز 
+                mergedRows = await _balanceCheck.checkBalance(mergedRows, excelExporter, requestDB, streamReport);
 
                 // اضافه کردن شیت برای تراز محاسبه شده اکسیر برای اپلود و گزارش دهی 
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
@@ -107,7 +111,7 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReport.Cell(row, 2).Value = item.Col2;
                         worksheetReport.Cell(row, 3).Value = item.Col3;
                         worksheetReport.Cell(row, 4).Value = item.Col4;
-                        worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings.GetValueOrDefault(item.Col1)??"";
+                        worksheetReport.Cell(row, 5).Value =requestDB.PouyaCodings ?.FirstOrDefault(x => x.SourceCode == item.Col1) ?.EquivalentCode ?? "";
 
                         row++;
                         writeValue++;
@@ -214,7 +218,7 @@ namespace WriteBalance.Infrastructure.Services
                         worksheetReportArzi.Cell(row, 1).Value = item.Col1;
                         worksheetReportArzi.Cell(row, 2).Value = item.Col2;
                         worksheetReportArzi.Cell(row, 3).Value = item.Col3;
-                        worksheetReportArzi.Cell(row, 4).Value = item.Col4; ;
+                        worksheetReportArzi.Cell(row, 4).Value = item.Col4; 
 
                         row++;
                         writeValue++;
@@ -283,10 +287,6 @@ namespace WriteBalance.Infrastructure.Services
                 var workbookUpload = excelExporter.GetWorkbookUpload();
                 var workbookUploadArzi = excelExporter.GetWorkbookUploadArzi();
 
-                //  تولید جدول تراز خام برای گزارش دهی
-                var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
-                streamReport.Position = 0;
-
                 // فرآیند تولید تراز ریالی 
                 //حذف کد 6
                 List<ExcelRow> rowsRial = new List<ExcelRow>();
@@ -310,7 +310,7 @@ namespace WriteBalance.Infrastructure.Services
                     .Where(x => (x.Kol_Code.ToString() != null && x.Kol_Code.ToString()[0] != '6'))
                     .Select(x => new ExcelRow
                     {
-                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}_{x.Code_Arz_Abbr}",
+                        Col1 = $"{x.Kol_Code}_{x.Arz_Code}_{x.Moeen_Code}",
                         Col2 = $"{x.Kol_Title}_{x.Sharh_Arz}",
                         Col3 = x.Mande_Bed_rial ?? 0,
                         Col4 = x.Mande_Bes_rial ?? 0,
@@ -321,10 +321,18 @@ namespace WriteBalance.Infrastructure.Services
 
                 //یونیک کردن کدها
                 var mergedRows = _balanceMerge.MergeDuplicateGardeshPouyaRows(rowsRial);
-                // بررسی بالانس بودن  تراز 
-                mergedRows = await _balanceCheck.checkGardeshBalance(mergedRows, excelExporter, requestDB, streamReport);
 
                 mergedRows = await _checkCoding.HandelNotFoundExcelAsync(mergedRows, excelExporter, requestDB);
+
+                //  تولید جدول تراز خام برای گزارش دهی
+                var streamReport = await GenerateRawPouyaTablesAsync(financialRecords, excelExporter, workbookReport, requestDB);
+                streamReport.Position = 0;
+
+                //یونیک کردن کدها
+                mergedRows = _balanceMerge.MergeDuplicateGardeshPouyaRows(rowsRial);
+
+                // بررسی بالانس بودن  تراز 
+                mergedRows = await _balanceCheck.checkGardeshBalance(mergedRows, excelExporter, requestDB, streamReport);
 
                 // اضافه کردن شیت برای تراز محاسبه شده اکسیر برای اپلود و گزارش دهی 
                 var worksheetUpload = workbookUpload.Worksheets.Add("Data");
@@ -345,7 +353,7 @@ namespace WriteBalance.Infrastructure.Services
                     worksheetReport.Cell(row, 2).Value = item.Col2;
                     worksheetReport.Cell(row, 3).Value = item.Col5;
                     worksheetReport.Cell(row, 4).Value = item.Col6;
-                    worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings.GetValueOrDefault(item.Col1) ?? "";
+                    worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? "";
 
                     row++;
                     writeValue++;

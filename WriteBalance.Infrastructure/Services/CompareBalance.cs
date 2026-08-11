@@ -56,6 +56,7 @@ namespace WriteBalance.Infrastructure.Services
             }
             catch (ConnectionMessageException ex)
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"CompareBalance:SetExcelRowAsync --typeReport:Error");
                 throw;
             }
             catch (Exception ex) 
@@ -88,6 +89,7 @@ namespace WriteBalance.Infrastructure.Services
             }
             catch (ConnectionMessageException ex)
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"CompareBalance:SetGLExcelRowAsync --typeReport:Error");
                 throw;
             }
             catch (Exception ex)
@@ -118,6 +120,7 @@ namespace WriteBalance.Infrastructure.Services
             }
             catch (ConnectionMessageException ex)
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"CompareBalance:SetRayanExcelRowAsync --typeReport:Error");
                 throw;
             }
             catch (Exception ex)
@@ -146,7 +149,8 @@ namespace WriteBalance.Infrastructure.Services
                 return await Task.FromResult(mergedRows);
             }
             catch (ConnectionMessageException ex)
-            {             
+            {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"CompareBalance:SetExcelRowAsync --typeReport:Error");
                 throw;
             }
             catch (Exception ex)

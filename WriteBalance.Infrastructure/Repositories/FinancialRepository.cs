@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Newtonsoft.Json;
 using System;
@@ -38,7 +39,6 @@ namespace WriteBalance.Infrastructure.Repositories
             _glContext = gLBankDbContext;
             _IsTest = false;
         }
-
 
         public List<GLFinancialRecord> ExecuteGLList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {
@@ -185,7 +185,6 @@ namespace WriteBalance.Infrastructure.Repositories
             }
 
         }
-
 
         public List<FinancialRecord> ExecuteSPList(APIRequestDto request, DBRequestDto requestDB, string startTimePersian, string endTimePersian)
         {
@@ -608,7 +607,9 @@ namespace WriteBalance.Infrastructure.Repositories
                                 .FromSqlRaw(sql)
                                 .ToList();
 
-                    Logger.WriteEntry(JsonConvert.SerializeObject($"sql = {sql} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Error");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"sql = {sql} "), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
+
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"entities.Count : {result.Count}"), $"FinancialRepository:ExecutePoyaSPList --typeReport:Debug");
                     if (result != null && result.Count == 0)
                     {
                         Logger.WriteEntry(JsonConvert.SerializeObject($"result.Count = {result.Count} "), $"FinancialRepository:ExecuteSPList --typeReport:Error");

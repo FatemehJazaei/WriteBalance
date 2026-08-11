@@ -103,19 +103,18 @@ namespace WriteBalance.Infrastructure.Services
 
         }
 
-
         public async Task SavePouyaNotFoundAsync(MemoryStream stream, string path, string fileName)
         {
             try
             {
-                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SaveReportAsync"), $"ExcelExporter: SaveReportAsync --typeReport:Info");
+                Logger.WriteEntry(JsonConvert.SerializeObject("Starting SavePouyaNotFoundAsync"), $"ExcelExporter: SavePouyaNotFoundAsync --typeReport:Info");
                 string folderPath = Path.Combine(path, fileName);
                 _workbookPouyaNotFound.SaveAs(folderPath);
                 await Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SaveReportAsync --typeReport:Error");
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"ExcelExporter: SavePouyaNotFoundAsync --typeReport:Error");
                 throw;
             }
             finally
@@ -138,7 +137,6 @@ namespace WriteBalance.Infrastructure.Services
             }
 
         }
-
 
         // ذخیره فایل اکسل تراز اکسیر
         public async Task SaveUploadAsync(MemoryStream stream, string path, string fileName)

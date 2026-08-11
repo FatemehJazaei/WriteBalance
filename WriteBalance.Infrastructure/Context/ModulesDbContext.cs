@@ -25,25 +25,30 @@ namespace WriteBalance.Infrastructure.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<PooyaCoding>()
-                .Property(x => x.CodeKol)
-                .HasColumnName("CodeKol")
-                .IsRequired();
+            base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<PooyaCoding>()
-                .Property(x => x.CodeArz)
-                .HasColumnName("CodeArz")
-                .IsRequired();
+            modelBuilder.Entity<PooyaCoding>(entity =>
+            {
+                entity.HasNoKey();
 
-            modelBuilder.Entity<PooyaCoding>()
-                .Property(x => x.GroupMoein)
-                .HasColumnName("GroupMoein")
-                .IsRequired();
+                entity.ToTable("Refah_PooyaCoding", "dbo");
 
-            modelBuilder.Entity<PooyaCoding>()
-                .Property(x => x.CodeOmoorMali)
-                .HasColumnName("CodeOmoorMali")
-                .IsRequired();
+                entity.Property(x => x.CodeKol)
+                    .HasColumnName("CodeKol")
+                    .IsRequired();
+
+                entity.Property(x => x.CodeArz)
+                    .HasColumnName("CodeArz")
+                    .IsRequired();
+
+                entity.Property(x => x.GroupMoein)
+                    .HasColumnName("GroupMoein")
+                    .IsRequired();
+
+                entity.Property(x => x.CodeOmoorMali)
+                    .HasColumnName("CodeOmoorMali")
+                    .IsRequired();
+            });
         }
     }
 }

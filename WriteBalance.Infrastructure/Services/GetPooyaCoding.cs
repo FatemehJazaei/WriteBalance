@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,59 +8,88 @@ using System.Threading.Tasks;
 using WriteBalance.Application.DTOs;
 using WriteBalance.Application.Exceptions;
 using WriteBalance.Application.Interfaces.Repository;
+using WriteBalance.Common.Logging;
 using WriteBalance.Domain.Entities;
 using WriteBalance.Infrastructure.Context;
+using WriteBalance.Infrastructure.Repositories;
 
 namespace WriteBalance.Infrastructure.Services
 {
     public class GetPooyaCoding
     {
-        private readonly ModulesDbContext _context;
-        private readonly IPooyaCodingRepository pooyaCodingRepository;
 
-        public GetPooyaCoding(ModulesDbContext context, IPooyaCodingRepository pooyaCodingRepository)
+        private readonly IPooyaCodingRepository _pooyaCodingRepository;
+
+        public GetPooyaCoding( IPooyaCodingRepository pooyaCodingRepository)
         {
-            _context = context;
-            pooyaCodingRepository = pooyaCodingRepository;
+            _pooyaCodingRepository = pooyaCodingRepository;
         }
 
-        public async Task<Dictionary<string, string>> ExecuteAsync(string FolderPath)
+        public List<EquivalentCodePouya> ExecuteAsync(string FolderPath)
         {
             try
             {
-                var Coding = await pooyaCodingRepository.GetPooyaCodingAsync(FolderPath);
+                Logger.WriteEntry(JsonConvert.SerializeObject("Start ExecuteAsync"), $"GetPooyaCoding:ExecuteAsync --typeReport:Debug");
+
+                var Coding = _pooyaCodingRepository.GetPooyaCodingAsync(FolderPath);
                 var DicCode = CreateDicFromnCode(Coding, FolderPath);
                 return DicCode;
             }
             catch (Exception ex)
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"GetPooyaCoding:ExecuteAsync --typeReport:Error");
                 throw;
             }
         }
 
-        public Dictionary<string, string> CreateDicFromnCode(List<PooyaCoding> pooyaCodings, string FolderPath)
+        public List<EquivalentCodePouya> CreateDicFromnCode(List<PooyaCoding> pooyaCodings, string FolderPath)
         {
             try
             {
-                var dictionary = pooyaCodings.ToDictionary(
-                    x => $"{x.CodeKol}_{x.CodeArz}_{x.GroupMoein}",
-                    x => $"{x.CodeKol}_{x.CodeOmoorMali:D4}"
-                );
+                Logger.WriteEntry(
+                    JsonConvert.SerializeObject("Start CreateDicFromnCode"),
+                    "GetPooyaCoding:CreateDicFromnCode --typeReport:Debug");
 
-                return dictionary;
+                var equivalentCodes = pooyaCodings
+                    .Select(x => new EquivalentCodePouya
+                    {
+                        SourceCode = $"{x.CodeKol}_{x.CodeArz}_{x.GroupMoein}",
+                        EquivalentCode = $"{x.CodeKol}_{int.Parse(x.CodeOmoorMali):D4}"
+                    })
+                    .ToList();
+
+                return equivalentCodes;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                throw new ConnectionMessageException(
-                        new ConnectionMessage
-                        {
-                            MessageType = MessageType.Error,
-                            Messages = new List<string> { $" خطا در کدهای معادل پویا" }
-                        },
-                    FolderPath
-                    );
+                Logger.WriteEntry(
+                    JsonConvert.SerializeObject(ex),
+                    "GetPooyaCoding:CreateDicFromnCode --typeReport:Error");
+
+                throw;
             }
-           
         }
+
+
+        //public Dictionary<string, string> CreateDicFromnCode(List<PooyaCoding> pooyaCodings, string FolderPath)
+        //{
+        //    try
+        //    {
+
+        //        Logger.WriteEntry(JsonConvert.SerializeObject("Start CreateDicFromnCode"), $"GetPooyaCoding:CreateDicFromnCode --typeReport:Debug");
+
+        //        var dictionary = pooyaCodings.ToDictionary(
+        //            x => $"{x.CodeKol}_{x.CodeArz}_{x.GroupMoein}",
+        //            x => $"{x.CodeKol}_{int.Parse(x.CodeOmoorMali):D4}"
+        //        );
+        //        return dictionary;
+        //    }
+        //    catch (Exception ex) 
+        //    {
+        //        Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"GetPooyaCoding:ExecuteAsync --typeReport:Error");
+        //        throw;
+        //    }
+
+        //}
     }
 }

@@ -142,6 +142,7 @@ namespace WriteBalance.Infrastructure.Services
             }
             catch (ConnectionMessageException ex)
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject(ex), $"CompareBalance:SetExcelRowAsync --typeReport:Error");
                 throw;
             }
             catch (Exception ex)

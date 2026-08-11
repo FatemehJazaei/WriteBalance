@@ -25,15 +25,15 @@ namespace WriteBalance.Infrastructure.Repositories
         }
         //دریافت تاریخ شروع و پایان دوره  
         //دریافت حالت  دوره مالی بسته شده یا غیر فعال شده 
-        public async Task<(int, bool, DateTime, DateTime)> GetTimeAsync(APIRequestDto request,string FolderPath)
+        public (int, bool, DateTime, DateTime) GetTimeAsync(APIRequestDto request,string FolderPath)
         {
             try
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GetTimeAsync"), $"PeriodRepository:GetTimeAsync--typeReport:Info");
 
-                var entity = await _context.Periods
+                var entity =  _context.Periods
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == request.PeriodId);
+                    .First(x => x.Id == request.PeriodId);
                 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"CompanyId:{entity.CompanyId},StartDate:{entity.StartDate},TimeEnd:{entity.TimeEnd} , Closed:{entity.Closed}, StateType:{entity.StateType} "), $"PeriodRepository:GetTimeAsync--typeReport:Debug");
 

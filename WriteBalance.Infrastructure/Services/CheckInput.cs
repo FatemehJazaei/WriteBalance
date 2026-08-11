@@ -31,17 +31,17 @@ namespace WriteBalance.Infrastructure.Services
         {
             try
             {
-                // دوره مالی سالانه
-                if (requestDB.TarazTypePouya == "4" && startDateTime.Substring(4, 4).Contains("0101") && (endDateTime.Substring(4, 4).Contains("1229") || endDateTime.Substring(4, 4).Contains("1230")) && startDateTime.Substring(0, 4) == endDateTime.Substring(0, 4))
-                {
-                    requestDB.TarazTypePouya= "2";
-                }
-                else
-                {
-                    requestDB.TarazTypePouya = "3";
-                }
+                //// دوره مالی سالانه
+                //if (requestDB.TarazTypePouya == "4" && startDateTime.Substring(4, 4).Contains("0101") && (endDateTime.Substring(4, 4).Contains("1229") || endDateTime.Substring(4, 4).Contains("1230")) && startDateTime.Substring(0, 4) == endDateTime.Substring(0, 4))
+                //{
+                //    requestDB.TarazTypePouya= "2";
+                //}
+                //else
+                //{
+                //    requestDB.TarazTypePouya = "3";
+                //}
 
-                    return requestDB;
+                return requestDB;
             }
             catch (ConnectionMessageException)
             {

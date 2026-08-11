@@ -19,11 +19,11 @@ namespace WriteBalanceConsoleApp
     {
         private readonly WriteBalanceHandler _writeBalanceHandler;
         private readonly ICheckInput _checkInput;
-        private readonly GetPooyaCoding getPooyaCoding;
-        public BalanceController( WriteBalanceHandler writeBalanceHandler, ICheckInput checkInput) 
+        private readonly GetPooyaCoding _getPooyaCoding;
+        public BalanceController( WriteBalanceHandler writeBalanceHandler, ICheckInput checkInput, GetPooyaCoding getPooyaCoding) 
         {
-            _writeBalanceHandler = writeBalanceHandler; 
-
+            _writeBalanceHandler = writeBalanceHandler;
+            _getPooyaCoding = getPooyaCoding;
             _checkInput = checkInput;
 
         }
@@ -37,6 +37,8 @@ namespace WriteBalanceConsoleApp
                 //rayan
                 //کدهای حذفی چک میشود
                 List<ExceptCode> ExceptCodes = new List<ExceptCode>();
+                List<EquivalentCodePouya> PouyaCodings = new List<EquivalentCodePouya>();
+                
                 //شماره سند های حذفی چک میشود
                 List<string> ExceptVoucherNum = new List<string>();
                 if (config["tarazType"] == "5")
@@ -63,6 +65,7 @@ namespace WriteBalanceConsoleApp
                 string folderPath = Path.Combine(path, folderName);
 
                 Logger.WriteEntry(JsonConvert.SerializeObject($"OutputPath: {folderPath}"), $"BalanceController--typeReport:Debug");
+
                 //چون از سه مدیریت  ارتباط استفاده میکنیم، متغیرهای تراز های دیگر در این قسمت مقداردهی میشود
                 // sama , karbourdi, hamrah 
                 if (config["tarazType"] == "-1" || config["tarazType"] == "1" || config["tarazType"] == "3" || config["tarazType"] == "4" || config["tarazType"] == "6" || config["tarazType"] == "7" || config["tarazType"] == "8" || config["tarazType"] == "9" || config["tarazType"] == "10")
@@ -77,16 +80,15 @@ namespace WriteBalanceConsoleApp
                 {
                     //rayan
                     config["tarazTypePouya"] = "";
-                    config["GardeshOrMandeh"] = "";
                 }
                 if (config["tarazType"] == "2")
                 {
                     //pouya
+                    PouyaCodings = _getPooyaCoding.ExecuteAsync(folderPath);
                     config["ExceptCode"] = "";
                     config["FromVoucherNum"] = "";
                     config["ToVoucherNum"] = "";
                     config["ExceptVoucherNum"] = "";
-                    config["GardeshOrMandeh"] = "";
                 }
 
                 // برای انتقال اطلاعات ورودی کاربر به دیگر لایه ها

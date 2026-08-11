@@ -75,26 +75,25 @@ namespace WriteBalance.Infrastructure.Services
                 config["objecttokenDB"] = "3d9758851923e42b";
                 config["objecttokenGL"] = "c5c5275a360247af";
                 config["OrginalClientAddressDB"] = "10.15.52.97";
-                //config["FromVoucherNum"] = "";
-                //config["ToVoucherNum"] = "";
-                //config["ExceptVoucherNum"] = "";
+
 
 
 
                 /*
-                config["AddressServerBank"] = "Exir-203";
-                //config["AddressServerBank"] = "DESKTOP-262P9P4";
-                config["DataBaseNameBank"] = "Database1";
-                config["op"] = "E:\\Projects";
-                //config["op"] = "D:\\Refah";
+                //config["AddressServerBank"] = "Exir-203";
+                config["AddressServerBank"] = "DESKTOP-262P9P4";
+                //config["DataBaseNameBank"] = "Database1";
+                config["DataBaseNameBank"] = "Arzi";
+                //config["op"] = "E:\\Projects";
+                config["op"] = "D:\\Refah";
                 config["of"] = "WriteBalance";
                 config["pi"] = "5046";
                 // sama, karbourdi, hamrah  1
-                // rayan 2
-                // pouya 5
+                // rayan 5
+                // pouya 2
                 // GL 6
                 // ekhtelaf GL AND All 7
-                config["tarazType"] = "7";
+                config["tarazType"] = "2";
                 // 1 default
                 // 2 before close
                 config["beforeClose"] = "1";
@@ -104,9 +103,12 @@ namespace WriteBalance.Infrastructure.Services
                 config["BalanceName"] = " 2شش ماهه";
                 config["FromDateDB"] = "14040101";
                 config["ToDateDB"] = "14040424";
-               // config["ExceptCode"] = "4131_002|4131_004";
+               //config["ExceptCode"] = "4131_002|4131_004";
                 config["ExceptCode"] = "";
                 config["GardeshOrMandeh"] = "1";
+                config["FromVoucherNum"] = "";
+                config["ToVoucherNum"] = "";
+                config["ExceptVoucherNum"] = "";
                 // TarazKol 1 
                 // TarazMoeen 2
                 // default 3

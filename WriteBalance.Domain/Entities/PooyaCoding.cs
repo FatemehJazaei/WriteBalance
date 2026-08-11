@@ -8,9 +8,9 @@ namespace WriteBalance.Domain.Entities
 {
     public class PooyaCoding
     {
-        public int CodeKol { get; set; }
-        public int CodeArz { get; set; } 
-        public int GroupMoein { get; set; }
-        public int CodeOmoorMali { get; set; }
+        public string CodeKol { get; set; } = string.Empty;
+        public string CodeArz { get; set; } = string.Empty;
+        public string GroupMoein { get; set; } = string.Empty;
+        public string CodeOmoorMali { get; set; } = string.Empty;
     }
 }

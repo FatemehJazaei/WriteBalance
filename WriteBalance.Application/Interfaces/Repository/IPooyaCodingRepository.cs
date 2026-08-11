@@ -10,6 +10,6 @@ namespace WriteBalance.Application.Interfaces.Repository
 {
     public interface IPooyaCodingRepository
     {
-        Task<List<PooyaCoding>> GetPooyaCodingAsync(string FolderPath);
+        List<PooyaCoding> GetPooyaCodingAsync(string FolderPath);
     }
 }

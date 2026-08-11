@@ -103,8 +103,10 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
                 //  برای همه ترازها چک میکند که حداقل یک رکورد وجود داشته باشد که از کد 2 و کد 5 دارای مانده باشد 
-                if (!mergedRows.Any(x => (x.Col1[0] == '2' && x.Col3 - x.Col4 != 0)) || !mergedRows.Any(x => (x.Col1[0] == '5' && x.Col3 - x.Col4 != 0)))
+                if (!mergedRows.Any(x => (x.Col1[0] == '2' && x.Col3 - x.Col4 != 0)) && !mergedRows.Any(x => (x.Col1[0] == '5' && x.Col3 - x.Col4 != 0)))
                 {
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"code 2 or code 5 not exist"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
+                    await excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
                     throw new ConnectionMessageException(
                          new ConnectionMessage
                          {
@@ -209,8 +211,10 @@ namespace WriteBalance.Infrastructure.Services
                 }
 
                 //  برای همه ترازهای گردش چک میکند که حداقل یک رکورد وجود داشته باشد که از کد 2 و کد 5 دارای مانده باشد 
-                if (!mergedRows.Any(x => (x.Col1[0] == '2' && x.Col5 - x.Col6 != 0)) || !mergedRows.Any(x => (x.Col1[0] == '5' && x.Col5 - x.Col6 != 0)))
+                if (!mergedRows.Any(x => (x.Col1[0] == '2' && x.Col5 - x.Col6 != 0)) && !mergedRows.Any(x => (x.Col1[0] == '5' && x.Col5 - x.Col6 != 0)))
                 {
+                    await excelExporter.SaveReportAsync(streamReport, requestDB.FolderPath, $"گزارش {requestDB.FileName}");
+                    Logger.WriteEntry(JsonConvert.SerializeObject($"code 2 or code 5 not exist"), $"BalanceGenerator:GeneratePoyaTablesAsync --typeReport:Error");
                     throw new ConnectionMessageException(
                          new ConnectionMessage
                          {

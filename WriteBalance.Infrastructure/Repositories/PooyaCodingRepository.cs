@@ -24,16 +24,17 @@ namespace WriteBalance.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<PooyaCoding>> GetPooyaCodingAsync(string FolderPath)
+        public List<PooyaCoding> GetPooyaCodingAsync(string FolderPath)
         {
             try
             {
                 Logger.WriteEntry(JsonConvert.SerializeObject("Starting GetPooyaCodingAsync"), $"PooyaCodingRepository:PooyaCodingRepository--typeReport:Info");
 
-                var entities = await _context.PooyaCodings
+                var entities = _context.PooyaCodings
                     .AsNoTracking()
-                    .ToListAsync();
-           
+                    .ToList();
+
+                Logger.WriteEntry(JsonConvert.SerializeObject($"entities.Count : {entities.Count}"), $"PooyaCodingRepository:PooyaCodingRepository--typeReport:Info");
                 return entities;
             }
             catch (Exception ex)

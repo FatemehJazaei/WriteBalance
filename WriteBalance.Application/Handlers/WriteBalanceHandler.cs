@@ -206,7 +206,7 @@ namespace WriteBalance.Application.Handlers
             if (requestDB.GardeshOrMandeh == "2") { isGardesh = "گردش"; }
             request.BalanceName = $"{balanceName} تراز {isGardesh} رایان {timestamp}";
 
-            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) =  _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Rayan_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -291,7 +291,7 @@ namespace WriteBalance.Application.Handlers
         public async Task<bool> Handle_Poya_Async(APIRequestDto request, DBRequestDto requestDB)
         {
 
-            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) =  _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -305,8 +305,11 @@ namespace WriteBalance.Application.Handlers
 
             var excelStreamRiali = new MemoryStream();
             var excelStreamArzi = new MemoryStream();
+
+            Logger.WriteEntry(JsonConvert.SerializeObject("after MemoryStream"), $"WriteBalanceHandler: Handle_Poya_Async --typeReport:Info");
             if (requestDB.GardeshOrMandeh == "1")
             {
+                Logger.WriteEntry(JsonConvert.SerializeObject("in if"), $"WriteBalanceHandler: Handle_Poya_Async --typeReport:Info");
                 (excelStreamRiali, excelStreamArzi) = await _pouyaBalanceGenerator.GeneratePoyaTablesAsync(financialRecord, _excelExporter, requestDB);
                 Logger.WriteEntry(JsonConvert.SerializeObject($"GeneratePoyaTablesAsync done."), $"WriteBalanceHandler: Handle_Poya_Async--typeReport:Info");
                 request.tarazNameLatin = $"{request.tarazNameLatin}_Mandeh";
@@ -424,7 +427,7 @@ namespace WriteBalance.Application.Handlers
                     break;
             }
 
-            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) =  _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Hamrah_Karbordi_Sama_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -501,7 +504,7 @@ namespace WriteBalance.Application.Handlers
             if (requestDB.GardeshOrMandeh == "2") { isGardesh = "گردش"; }
             request.BalanceName = $"{balanceName} تراز {isGardesh} جی ال {timestamp}";
 
-            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) =  _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_GL_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -571,7 +574,7 @@ namespace WriteBalance.Application.Handlers
             string timestamp = $"{pc.GetSecond(now):00}_{pc.GetMinute(now):00}-{pc.GetHour(now):00}" +
                                $"_{pc.GetDayOfMonth(now):00}_{pc.GetMonth(now):00}_{pc.GetYear(now):0000}";
 
-            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) =  _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
@@ -655,7 +658,7 @@ namespace WriteBalance.Application.Handlers
             request.BalanceName = $"{balanceName} تراز جی ال {isGardesh} _ {timestamp}";
 
 
-            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) = await _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
+            (var CompanyId, bool isClosed, DateTime startTime, DateTime endTime) =  _periodRepository.GetTimeAsync(request, requestDB.FolderPath);
             Logger.WriteEntry(JsonConvert.SerializeObject($"GetTimeAsync done."), $"WriteBalanceHandler: Handle_Compare_GL_Async--typeReport:Info");
 
             (string startTimeStr, string endTimeStr) = _checkInput.CheckDateInput(requestDB, startTime, endTime);
