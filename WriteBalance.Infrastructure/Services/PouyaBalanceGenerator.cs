@@ -102,16 +102,18 @@ namespace WriteBalance.Infrastructure.Services
                     }
                     else
                     {
-                        worksheetUpload.Cell(row, 1).Value = item.Col1;
+                        //worksheetUpload.Cell(row, 1).Value = item.Col1;
+                        worksheetUpload.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
                         worksheetUpload.Cell(row, 2).Value = item.Col2;
                         worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
                         worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
 
-                        worksheetReport.Cell(row, 1).Value = item.Col1;
+                        //worksheetReport.Cell(row, 1).Value = item.Col1;
+                        worksheetReport.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
                         worksheetReport.Cell(row, 2).Value = item.Col2;
                         worksheetReport.Cell(row, 3).Value = item.Col3;
                         worksheetReport.Cell(row, 4).Value = item.Col4;
-                        worksheetReport.Cell(row, 5).Value =requestDB.PouyaCodings ?.FirstOrDefault(x => x.SourceCode == item.Col1) ?.EquivalentCode ?? "";
+                        worksheetReport.Cell(row, 5).Value =requestDB.PouyaCodings ?.FirstOrDefault(x => x.SourceCode == item.Col1) ?.SourceCode ?? "";
 
                         row++;
                         writeValue++;
@@ -210,15 +212,18 @@ namespace WriteBalance.Infrastructure.Services
                     }
                     else
                     {
-                        worksheetUploadArzi.Cell(row, 1).Value = item.Col1;
-                        worksheetUploadArzi.Cell(row, 2).Value = item.Col2;
-                        worksheetUploadArzi.Cell(row, 3).Value = item.Col3.ToString();
-                        worksheetUploadArzi.Cell(row, 4).Value = item.Col4.ToString();
+                        //worksheetUpload.Cell(row, 1).Value = item.Col1;
+                        worksheetUpload.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
+                        worksheetUpload.Cell(row, 2).Value = item.Col2;
+                        worksheetUpload.Cell(row, 3).Value = item.Col3.ToString();
+                        worksheetUpload.Cell(row, 4).Value = item.Col4.ToString();
 
-                        worksheetReportArzi.Cell(row, 1).Value = item.Col1;
-                        worksheetReportArzi.Cell(row, 2).Value = item.Col2;
-                        worksheetReportArzi.Cell(row, 3).Value = item.Col3;
-                        worksheetReportArzi.Cell(row, 4).Value = item.Col4; 
+                        //worksheetReport.Cell(row, 1).Value = item.Col1;
+                        worksheetReport.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
+                        worksheetReport.Cell(row, 2).Value = item.Col2;
+                        worksheetReport.Cell(row, 3).Value = item.Col3;
+                        worksheetReport.Cell(row, 4).Value = item.Col4;
+                        worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.SourceCode ?? "";
 
                         row++;
                         writeValue++;
@@ -344,16 +349,16 @@ namespace WriteBalance.Infrastructure.Services
 
                 foreach (var item in mergedRows)
                 {
-                    worksheetUpload.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
                     worksheetUpload.Cell(row, 2).Value = item.Col2;
                     worksheetUpload.Cell(row, 3).Value = item.Col5.ToString();
                     worksheetUpload.Cell(row, 4).Value = item.Col6.ToString();
 
-                    worksheetReport.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
                     worksheetReport.Cell(row, 2).Value = item.Col2;
                     worksheetReport.Cell(row, 3).Value = item.Col5;
                     worksheetReport.Cell(row, 4).Value = item.Col6;
-                    worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? "";
+                    worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.SourceCode ?? "";
 
                     row++;
                     writeValue++;
@@ -447,15 +452,16 @@ namespace WriteBalance.Infrastructure.Services
                 //فرایند نوشتن رکوردها
                 foreach (var item in mergedRowsArzi)
                 {
-                    worksheetUploadArzi.Cell(row, 1).Value = item.Col1;
+                    worksheetUpload.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
                     worksheetUploadArzi.Cell(row, 2).Value = item.Col2;
                     worksheetUploadArzi.Cell(row, 3).Value = item.Col5.ToString();
                     worksheetUploadArzi.Cell(row, 4).Value = item.Col6.ToString();
 
-                    worksheetReportArzi.Cell(row, 1).Value = item.Col1;
+                    worksheetReport.Cell(row, 1).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.EquivalentCode ?? item.Col1;
                     worksheetReportArzi.Cell(row, 2).Value = item.Col2;
                     worksheetReportArzi.Cell(row, 3).Value = item.Col5;
                     worksheetReportArzi.Cell(row, 4).Value = item.Col6;
+                    worksheetReport.Cell(row, 5).Value = requestDB.PouyaCodings?.FirstOrDefault(x => x.SourceCode == item.Col1)?.SourceCode ?? "";
 
                     row++;
                     writeValue++;
